@@ -1,16 +1,23 @@
 {
-  "name": "time-machine",
+  "name": "event-cloud",
   "version": "0.1.0",
-  "description": "Static Memory Site Generator — compile your Logseq Graph into a personal time machine",
+  "description": "Static Event Site Generator — compile your Logseq Graph into a browsable event cloud",
   "type": "commonjs",
   "main": "lib/index.js",
   "bin": {
-    "tm": "bin/tm.js"
+    "ec": "bin/ec.js",
+    "tm": "bin/ec.js"
   },
+  "files": [
+    "lib/",
+    "bin/",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
+    "prepare": "npm run build",
     "dev": "ts-node src/cli/index.ts",
-    "tm": "ts-node src/cli/index.ts",
+    "ec": "ts-node src/cli/index.ts",
     "g": "ts-node src/cli/index.ts generate",
     "s": "ts-node src/cli/index.ts server",
     "d": "ts-node src/cli/index.ts deploy",
@@ -20,7 +27,7 @@
     "lint": "eslint src/",
     "format": "prettier --write src/"
   },
-  "keywords": ["logseq", "static-site-generator", "memory", "time-machine"],
+  "keywords": ["logseq", "static-site-generator", "event", "event-cloud"],
   "license": "MIT",
   "dependencies": {
     "chalk": "^4.1.2",

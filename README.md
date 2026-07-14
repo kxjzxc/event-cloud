@@ -1,8 +1,8 @@
-# Time Machine
+# Event Cloud
 
-> 静态记忆网站生成器 — 将 Logseq Graph 编译成可浏览的静态网站。
+> 静态事件网站生成器 — 将 Logseq Graph 编译成可浏览的事件云。
 
-Time Machine 不是博客，而是一个个人时光机。用户以随机探索的方式重新遇见过去的自己。
+Event Cloud 不是博客，而是一个事件云。用户以随机探索的方式重新遇见过去的自己。
 
 ## 核心理念
 
@@ -143,7 +143,7 @@ Builder 自动处理图片，**不修改原始文件**：
 ## 项目结构
 
 ```
-time-machine/
+event-cloud/
 ├── graph/                  # Logseq Graph 数据（你的笔记）
 │   ├── journals/
 │   ├── pages/
@@ -165,7 +165,7 @@ time-machine/
 │   │   └── templates.ts    # HTML/CSS/JS 模板
 │   ├── registry.ts         # 插件注册表
 │   └── cli/index.ts        # CLI 入口
-├── bin/tm.js               # 可执行入口
+├── bin/ec.js               # 可执行入口
 ├── config.json             # 配置文件
 └── package.json
 ```

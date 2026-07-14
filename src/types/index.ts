@@ -1,5 +1,5 @@
 /**
- * Time Machine — Core Types & Plugin Interfaces
+ * Event Cloud — Core Types & Plugin Interfaces
  *
  * All plugin contracts live here. The Builder only talks to these interfaces,
  * never to concrete implementations.
@@ -21,7 +21,7 @@ export interface MediaAsset {
 }
 
 /**
- * Event — the atomic unit of the Time Machine.
+ * Event — the atomic unit of the Event Cloud.
  *
  * One Journal block with `type:: event` becomes one Event.
  * The same Journal can yield multiple Events.

@@ -1,5 +1,5 @@
 /**
- * Default Renderer Templates — HTML/CSS/JS for the Time Machine site.
+ * Default Renderer Templates — HTML/CSS/JS for the Event Cloud site.
  *
  * All frontend assets are generated as strings and written via IStorage.
  * No template engine dependency — TypeScript template literals + type safety.
@@ -469,7 +469,7 @@ body {
 
 export function getAppJS(): string {
   return `
-// Time Machine — Frontend Logic
+// Event Cloud — Frontend Logic
 (function() {
   'use strict';
 
@@ -523,10 +523,10 @@ export function getAppJS(): string {
 
     launchBtn.addEventListener('click', function() {
       if (index.length === 0) {
-        launchBtn.querySelector('span').textContent = '暂无记忆';
+        launchBtn.querySelector('span').textContent = '暂无事件';
         return;
       }
-      launchBtn.querySelector('span').textContent = '穿越中...';
+      launchBtn.querySelector('span').textContent = '探索中...';
       launchBtn.disabled = true;
 
       // Pick random event: prefer locked ones
@@ -649,7 +649,7 @@ export function getAppJS(): string {
       });
 
       if (filtered.length === 0) {
-        archiveGrid.innerHTML = '<div class="archive-empty">没有找到匹配的记忆。<br>先去启动时光机探索更多吧。</div>';
+        archiveGrid.innerHTML = '<div class="archive-empty">没有找到匹配的事件。<br>先去探索事件云发现更多吧。</div>';
         return;
       }
 
@@ -676,18 +676,18 @@ export function renderHomepage(index: EventIndexEntry[]): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Time Machine</title>
+  <title>Event Cloud</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <div class="home">
-    <h1 class="home-title">Time Machine</h1>
-    <p class="home-subtitle">随机穿越，遇见过去的自己</p>
+    <h1 class="home-title">Event Cloud</h1>
+    <p class="home-subtitle">随机探索，遇见过去的自己</p>
     <button class="launch-btn" id="launch-btn">
-      <span>启动时光机</span>
+      <span>探索事件云</span>
     </button>
     <div class="home-stats">
-      <span id="total-events">—</span> 段记忆 · 已解锁 <span id="unlocked-count">0</span> 段
+      <span id="total-events">—</span> 个事件 · 已解锁 <span id="unlocked-count">0</span> 个
     </div>
   </div>
   <script type="application/json" id="event-index">${indexJson}</script>
@@ -814,11 +814,11 @@ export function renderEventPage(event: TMEvent, titleMap: Map<string, string>, i
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${event.title} — Time Machine</title>
+  <title>${event.title} — Event Cloud</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-  <a href="../index.html" class="back-home">← 时光机</a>
+  <a href="../index.html" class="back-home">← 事件云</a>
   <div class="event-page" data-event-id="${event.id}">
     <div class="event-header">
       <div class="event-date">${event.date}</div>
@@ -833,7 +833,7 @@ export function renderEventPage(event: TMEvent, titleMap: Map<string, string>, i
       ${siblingsHtml}
       ${backlinksHtml}
       ${relatedHtml}
-      <a href="#" class="travel-again" id="travel-again">再次穿越 →</a>
+      <a href="#" class="travel-again" id="travel-again">继续探索 →</a>
     </div>
   </div>
   <div class="modal" id="image-modal">
@@ -852,18 +852,18 @@ export function renderArchivePage(index: EventIndexEntry[]): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>记忆馆 — Time Machine</title>
+  <title>事件馆 — Event Cloud</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <a href="index.html" class="back-home">← 时光机</a>
+  <a href="index.html" class="back-home">← 事件云</a>
   <div class="archive-page">
     <div class="archive-header">
-      <h1>记忆馆</h1>
-      <p>已经解锁的记忆。点击任意一条重新浏览。</p>
+      <h1>事件馆</h1>
+      <p>已经解锁的事件。点击任意一条重新浏览。</p>
     </div>
     <div class="archive-controls">
-      <input type="text" class="archive-search" id="archive-search" placeholder="搜索记忆...">
+      <input type="text" class="archive-search" id="archive-search" placeholder="搜索事件...">
       <div class="tag-filter" id="tag-filter"></div>
     </div>
     <div class="archive-grid" id="archive-grid">

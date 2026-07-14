@@ -1,9 +1,9 @@
 /**
- * Default Renderer — generates the static Time Machine website.
+ * Default Renderer — generates the static Event Cloud website.
  *
  * Output structure:
- *   index.html          Homepage (launch button)
- *   archive.html        Archive (unlocked memories)
+ *   index.html          Homepage (explore button)
+ *   archive.html        Archive (unlocked events)
  *   events/{id}.html    One page per event
  *   css/style.css       Site styles
  *   js/app.js           Frontend logic
