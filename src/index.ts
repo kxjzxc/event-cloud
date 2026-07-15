@@ -1,8 +1,8 @@
 /**
- * Time Machine — Static Memory Site Generator
+ * Event Cloud — Static Event Site Generator
  *
  * Compiles a Logseq Graph into a browsable static website.
- * The website is a "personal time machine" — users randomly
+ * The website is an "event cloud" — users randomly
  * encounter past events rather than browsing chronologically.
  */
 

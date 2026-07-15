@@ -1,13 +1,13 @@
 /**
- * Time Machine CLI — Hexo-style commands
+ * Event Cloud CLI — Hexo-style commands
  *
  * Commands (with aliases):
- *   tm generate | g     Build the static site           [-w] [-d] [-v] [-s] [-c]
- *   tm server   | s     Serve locally (auto-build)      [-p] [-w] [--no-build] [-o]
- *   tm deploy   | d     Deploy to remote host            [--platform] [-c]
- *   tm clean    | cl    Remove the output directory      [-c]
- *   tm new      | n     Create a new page in the graph   <title> [-c]
- *   tm init     [folder]  Scaffold a new project          [-g] [-o] [-f]
+ *   ec generate | g     Build the static site           [-w] [-d] [-v] [-s] [-c]
+ *   ec server   | s     Serve locally (auto-build)      [-p] [-w] [--no-build] [-o]
+ *   ec deploy   | d     Deploy to remote host            [--platform] [-c]
+ *   ec clean    | cl    Remove the output directory      [-c]
+ *   ec new      | n     Create a new page in the graph   <title> [-c]
+ *   ec init     [folder]  Scaffold a new project          [-g] [-o] [-f]
  *
  * Inspired by Hexo: `hexo g`, `hexo s`, `hexo clean`, `hexo new`
  */
@@ -26,8 +26,8 @@ import type { TMConfig } from '../types';
 const program = new Command();
 
 program
-  .name('tm')
-  .description('Time Machine — Static Memory Site Generator')
+  .name('ec')
+  .description('Event Cloud — Static Event Site Generator')
   .version('0.1.0');
 
 // ── Shared: build runner ──────────────────────────────────────
@@ -127,7 +127,7 @@ function startServer(
   server.listen(port, () => {
     const url = `http://localhost:${port}`;
     console.log();
-    console.log(chalk.cyan(`⚙  Time Machine — ${opts.label}`));
+    console.log(chalk.cyan(`⚙  Event Cloud — ${opts.label}`));
     console.log(chalk.green(`✓ Serving at ${url}`));
     console.log(chalk.gray('  Press Ctrl+C to stop.'));
 
@@ -191,7 +191,7 @@ function makeGenerateCommand(name: string, alias: string) {
         const config = loadConfig(opts.config);
         if (opts.storage) config.storage = opts.storage;
 
-        console.log(chalk.cyan('⚙  Time Machine — Generate'));
+        console.log(chalk.cyan('⚙  Event Cloud — Generate'));
         console.log(chalk.gray(`   Graph:  ${config.logseqPath}`));
         console.log(chalk.gray(`   Output: ${config.outputPath}`));
         console.log(chalk.gray(`   Storage: ${config.storage}`));
@@ -247,7 +247,7 @@ program
 
     // Auto-build before serving (unless --no-build)
     if (opts.build) {
-      console.log(chalk.cyan('⚙  Time Machine — Auto-build before serving'));
+      console.log(chalk.cyan('⚙  Event Cloud — Auto-build before serving'));
       console.log();
       try {
         await runBuild(config, {});
@@ -277,7 +277,7 @@ program
 program
   .command('preview')
   .alias('p')
-  .description('Alias for `tm server`')
+  .description('Alias for `ec server`')
   .option('-p, --port <number>', 'Port number', '3000')
   .option('-c, --config <path>', 'Config file path', 'config.json')
   .option('--no-build', 'Skip the initial build')
@@ -290,7 +290,7 @@ program
     const root = path.resolve(config.outputPath);
 
     if (opts.build) {
-      console.log(chalk.cyan('⚙  Time Machine — Auto-build before serving'));
+      console.log(chalk.cyan('⚙  Event Cloud — Auto-build before serving'));
       console.log();
       try {
         await runBuild(config, {});
@@ -329,7 +329,7 @@ program
       return;
     }
 
-    console.log(chalk.cyan('⚙  Time Machine — Clean'));
+    console.log(chalk.cyan('⚙  Event Cloud — Clean'));
     console.log(chalk.gray(`   Removing: ${outputDir}`));
 
     fs.rmSync(outputDir, { recursive: true, force: true });
@@ -401,7 +401,7 @@ program
     const platform = opts.platform || 'github-pages';
     const supported = ['github-pages', 'r2', 'oss'];
 
-    console.log(chalk.cyan('⚙  Time Machine — Deploy'));
+    console.log(chalk.cyan('⚙  Event Cloud — Deploy'));
     console.log(chalk.gray(`   Platform: ${platform}`));
     console.log();
 
@@ -449,7 +449,7 @@ program
 
 program
   .command('init [folder]')
-  .description('Scaffold a new Time Machine project (like `hexo init`)')
+  .description('Scaffold a new Event Cloud project (like `hexo init`)')
   .option('-g, --graph <path>', 'Graph directory path', './graph')
   .option('-o, --output <path>', 'Output directory path', './dist')
   .option('-f, --force', 'Overwrite existing files')
@@ -462,11 +462,11 @@ program
     }
 
     if (folder) {
-      console.log(chalk.cyan('⚙  Time Machine — Init'));
+      console.log(chalk.cyan('⚙  Event Cloud — Init'));
       console.log(chalk.gray(`   Target: ${targetDir}`));
       console.log();
     } else {
-      console.log(chalk.cyan('⚙  Time Machine — Init'));
+      console.log(chalk.cyan('⚙  Event Cloud — Init'));
       console.log(chalk.gray(`   Target: ${targetDir} (current directory)`));
       console.log();
     }
@@ -516,7 +516,7 @@ program
       console.log(chalk.yellow('   .gitignore (exists, skipped)'));
     } else {
       const gitignore = [
-        '# Time Machine',
+        '# Event Cloud',
         'node_modules/',
         'lib/',
         'dist/',
@@ -539,12 +539,12 @@ program
       console.log(chalk.yellow('   graph/pages/Welcome.md (exists, skipped)'));
     } else {
       const today = new Date().toISOString().slice(0, 10);
-      const samplePage = `# Welcome to Time Machine
+      const samplePage = `# Welcome to Event Cloud
 
 date:: ${today}
 tags:: #guide
 
-This is your first page. Each \`pages/*.md\` file becomes an **Event** — a memory card in the Time Machine.
+This is your first page. Each \`pages/*.md\` file becomes an **Event** — an event card in the Event Cloud.
 
 ## What you can do
 
@@ -564,9 +564,9 @@ Here's a photo placeholder:
 
 1. Delete this file and create your own pages in \`pages/\`
 2. Put images in \`assets/\`
-3. Run \`tm g\` to build, \`tm s\` to preview
+3. Run \`ec g\` to build, \`ec s\` to preview
 
-> Remember: Logseq is the source of truth. Time Machine only reads, never modifies.
+> Remember: Logseq is the source of truth. Event Cloud only reads, never modifies.
 `;
       fs.writeFileSync(samplePagePath, samplePage, 'utf-8');
       console.log(chalk.green('   graph/pages/Welcome.md ✓'));
@@ -579,7 +579,7 @@ Here's a photo placeholder:
     } else {
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
   <rect width="800" height="400" fill="#1a1a2e"/>
-  <text x="400" y="180" font-family="sans-serif" font-size="36" fill="#e0e0e0" text-anchor="middle">Time Machine</text>
+  <text x="400" y="180" font-family="sans-serif" font-size="36" fill="#e0e0e0" text-anchor="middle">Event Cloud</text>
   <text x="400" y="230" font-family="sans-serif" font-size="18" fill="#888" text-anchor="middle">Replace this with your own image</text>
 </svg>
 `;
