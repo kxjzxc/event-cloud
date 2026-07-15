@@ -11,5 +11,6 @@
     "repo": "https://github.com/kxjzxc/event-cloud.git",
     "branch": "gh-pages",
     "message": "Deploy Event Cloud"
-  }
+  },
+  "theme": "minimal"
 }

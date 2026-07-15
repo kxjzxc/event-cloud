@@ -127,12 +127,20 @@ export interface DeployConfig {
   message?: string;
 }
 
+export interface ThemeConfig {
+  name: string;
+  description?: string;
+  author?: string;
+  version?: string;
+}
+
 export interface TMConfig {
   logseqPath: string;
   outputPath: string;
   storage: string;
   media: ImageProcessConfig;
   deploy?: DeployConfig;
+  theme?: string;
 }
 
 export interface RenderContext {
