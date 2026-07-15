@@ -5,8 +5,8 @@
   "type": "commonjs",
   "main": "lib/index.js",
   "bin": {
-    "ec": "bin/ec.js",
-    "tm": "bin/ec.js"
+    "evc": "bin/evc.js",
+    "tm": "bin/evc.js"
   },
   "files": [
     "lib/",
@@ -17,7 +17,7 @@
     "build": "tsc",
     "prepare": "npm run build",
     "dev": "ts-node src/cli/index.ts",
-    "ec": "ts-node src/cli/index.ts",
+    "evc": "ts-node src/cli/index.ts",
     "g": "ts-node src/cli/index.ts generate",
     "s": "ts-node src/cli/index.ts server",
     "d": "ts-node src/cli/index.ts deploy",

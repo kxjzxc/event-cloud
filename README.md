@@ -59,10 +59,10 @@ npx node lib/cli/index.js preview
 ## CLI 命令
 
 ```bash
-tm build [--dry-run] [-v] [-c <config>] [--storage <name>]
-tm preview [--port <port>] [-c <config>]
-tm deploy --platform <github-pages|r2|oss>
-tm init --graph <path> --output <path>
+evc build [--dry-run] [-v] [-c <config>] [--storage <name>]
+evc preview [--port <port>] [-c <config>]
+evc deploy --platform <github-pages|r2|oss>
+evc init --graph <path> --output <path>
 ```
 
 | 命令 | 说明 |
@@ -165,7 +165,7 @@ event-cloud/
 │   │   └── templates.ts    # HTML/CSS/JS 模板
 │   ├── registry.ts         # 插件注册表
 │   └── cli/index.ts        # CLI 入口
-├── bin/ec.js               # 可执行入口
+├── bin/evc.js              # 可执行入口
 ├── config.json             # 配置文件
 └── package.json
 ```

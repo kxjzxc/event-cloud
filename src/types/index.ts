@@ -120,11 +120,19 @@ export interface ProcessedImage {
   originalFilename: string;
 }
 
+export interface DeployConfig {
+  type: 'github-pages';
+  repo?: string;
+  branch?: string;
+  message?: string;
+}
+
 export interface TMConfig {
   logseqPath: string;
   outputPath: string;
   storage: string;
   media: ImageProcessConfig;
+  deploy?: DeployConfig;
 }
 
 export interface RenderContext {

@@ -5,5 +5,11 @@
   "media": {
     "thumbnailSize": 200,
     "previewSize": 800
+  },
+  "deploy": {
+    "type": "github-pages",
+    "repo": "https://github.com/kxjzxc/event-cloud.git",
+    "branch": "gh-pages",
+    "message": "Deploy Event Cloud"
   }
 }
