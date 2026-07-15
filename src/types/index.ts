@@ -31,8 +31,10 @@ export interface TMEvent {
   id: string;
   /** First line of the block, stripped of markdown */
   title: string;
-  /** ISO date string (from journal filename) */
+  /** Date string (can be ISO date or descriptive text) */
   date: string;
+  /** Whether the date is a valid ISO date (can be used for date lookup) */
+  hasValidDate: boolean;
   /** Child-block content rendered as HTML */
   contentHtml: string;
   /** Raw block content (markdown) for search / archive */

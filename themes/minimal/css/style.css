@@ -74,6 +74,35 @@ html, body {
   color: var(--bg);
 }
 
+.home-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.date-picker-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+}
+
+.date-picker {
+  padding: 0.8rem 1.2rem;
+  font-size: 1.1rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  outline: none;
+  font-family: var(--sans);
+}
+
+.date-picker:focus {
+  border-color: var(--text);
+}
+
 .card-modal {
   display: none;
   position: fixed;
@@ -188,6 +217,37 @@ html, body {
   max-width: 100%;
   border-radius: 8px;
   margin: 1rem 0;
+}
+
+.day-event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.day-event-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.day-event-item:hover {
+  background: var(--bg-tertiary);
+  transform: translateX(4px);
+}
+
+.day-event-title {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.day-event-has-media {
+  font-size: 1.25rem;
 }
 
 .card-media {

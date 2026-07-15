@@ -30,14 +30,15 @@ export class LogseqParser implements IParser {
 
   async parse(graphPath: string): Promise<TMEvent[]> {
     const pagesDir = path.join(graphPath, 'pages');
+    const journalsDir = path.join(graphPath, 'journals');
     const allEvents: TMEvent[] = [];
 
-    // Every page is an Event. Journals are not events.
+    const pageDateMap = this.buildPageDateMap(journalsDir);
+
     const pageFiles = this.findMarkdownFiles(pagesDir);
 
     for (const file of pageFiles) {
       const pageName = path.basename(file, '.md');
-      // Skip Logseq internal pages
       if (pageName === 'contents' || pageName === 'whiteboards') continue;
 
       const relPath = path.relative(graphPath, file);
@@ -45,11 +46,37 @@ export class LogseqParser implements IParser {
       const blocks = this.parseBlocks(content);
       if (blocks.length === 0) continue;
 
-      const event = this.pageToEvent(blocks, pageName, relPath, graphPath, file);
+      const referencedDate = pageDateMap.get(pageName);
+      const event = this.pageToEvent(blocks, pageName, relPath, graphPath, file, referencedDate);
       if (event) allEvents.push(event);
     }
 
     return allEvents;
+  }
+
+  private buildPageDateMap(journalsDir: string): Map<string, string> {
+    const map = new Map<string, string>();
+    if (!fs.existsSync(journalsDir)) return map;
+
+    for (const entry of fs.readdirSync(journalsDir, { withFileTypes: true })) {
+      if (!entry.isFile() || !entry.name.endsWith('.md')) continue;
+
+      const journalDate = this.extractDateFromFilename(entry.name);
+      if (!journalDate) continue;
+
+      const filePath = path.join(journalsDir, entry.name);
+      const content = fs.readFileSync(filePath, 'utf-8');
+      const links = this.extractLinks(content);
+
+      for (const link of links) {
+        const existing = map.get(link);
+        if (!existing) {
+          map.set(link, journalDate);
+        }
+      }
+    }
+
+    return map;
   }
 
   private pageToEvent(
@@ -58,29 +85,33 @@ export class LogseqParser implements IParser {
     sourceFile: string,
     graphPath: string,
     filePath: string,
+    referencedDate?: string,
   ): TMEvent | null {
     const title = pageName;
 
-    // Read raw file content for comprehensive extraction
     const rawContent = fs.readFileSync(filePath, 'utf-8');
-
-    // Extract page-level properties (lines like "key:: value" anywhere in the file)
     const pageProperties = this.extractPageProperties(rawContent);
 
-    // Date: look for date:: property, fallback to file mtime
-    const date = pageProperties['date']?.trim() || this.formatDate(new Date(fs.statSync(filePath).mtime));
+    const dateProperty = pageProperties['date']?.trim();
+    let date: string;
+    let hasValidDate: boolean;
+
+    if (referencedDate) {
+      date = referencedDate;
+      hasValidDate = true;
+    } else if (dateProperty) {
+      date = dateProperty;
+      hasValidDate = this.isValidISODate(dateProperty);
+    } else {
+      date = '未知时间的碎片';
+      hasValidDate = false;
+    }
+
     const id = this.makeEventId(date, title);
 
-    // Tags: from tags:: property (case-insensitive) + inline #hashtags
     const tags = this.extractAllTags(rawContent, pageProperties);
-
-    // Links: [[double-bracket]] from full text
     const links = this.extractLinks(rawContent);
-
-    // Media: images and videos from full text
     const media = this.extractMedia(rawContent, graphPath);
-
-    // Content: strip properties and render the rest as HTML
     const contentRaw = this.stripProperties(rawContent, pageName);
     const contentHtml = this.renderMarkdown(contentRaw);
 
@@ -88,6 +119,7 @@ export class LogseqParser implements IParser {
       id,
       title,
       date,
+      hasValidDate,
       contentHtml,
       contentRaw,
       tags,
@@ -183,11 +215,14 @@ export class LogseqParser implements IParser {
   }
 
   private extractDateFromFilename(filename: string): string | null {
-    // Logseq journal filenames: "2026_07_13.md" or "2026-07-13.md"
     const base = filename.replace(/\.md$/, '');
     const m = base.match(/(\d{4})[_-](\d{2})[_-](\d{2})/);
     if (m) return `${m[1]}-${m[2]}-${m[3]}`;
     return null;
+  }
+
+  private isValidISODate(dateStr: string): boolean {
+    return /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
   }
 
   // ─── Block parsing ─────────────────────────────────────────
@@ -326,6 +361,7 @@ export class LogseqParser implements IParser {
       id,
       title,
       date,
+      hasValidDate: true,
       contentHtml,
       contentRaw,
       tags,

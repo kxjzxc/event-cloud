@@ -214,10 +214,24 @@ export class Builder {
    *    limited to top 5 by overlap count.
    */
   private buildRelations(events: TMEvent[]): void {
-    // Build title → event ID lookup (case-insensitive)
     const titleToId = new Map<string, string>();
     for (const e of events) {
       titleToId.set(e.title.toLowerCase(), e.id);
+    }
+
+    // Siblings: events on the same date
+    const dateGroups = new Map<string, TMEvent[]>();
+    for (const e of events) {
+      if (!dateGroups.has(e.date)) dateGroups.set(e.date, []);
+      dateGroups.get(e.date)!.push(e);
+    }
+    for (const [date, group] of dateGroups) {
+      if (group.length > 1) {
+        const siblingIds = group.map((e) => e.id);
+        for (const e of group) {
+          e.siblingIds = siblingIds.filter((id) => id !== e.id);
+        }
+      }
     }
 
     // Backlinks
@@ -246,7 +260,6 @@ export class Builder {
         }
       }
 
-      // Sort by overlap count desc, take top 5
       scored.sort((a, b) => b.score - a.score);
       event.relatedIds = scored.slice(0, 5).map((s) => s.id);
     }

@@ -18,9 +18,34 @@
       </div>
     </div>
     
-    <button id="launch-btn" class="launch-btn">开启探索</button>
+    <div class="home-actions">
+      <button id="launch-btn" class="launch-btn">开启探索</button>
+      <button id="date-jump-btn" class="launch-btn">跳转到某天</button>
+    </div>
   </div>
-  
+
+  <div id="date-modal" class="card-modal">
+    <div class="card date-card">
+      <div class="card-header">
+        <h2 class="card-title">选择日期</h2>
+        <button id="date-close" class="card-close">×</button>
+      </div>
+      <div class="card-body">
+        <div class="date-picker-wrap">
+          <input type="date" id="date-picker" class="date-picker" />
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="card-actions">
+          <button id="date-confirm" class="action-btn">
+            <span>→</span>
+            <span>前往</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="card-modal" class="card-modal">
     <div class="card">
       <div class="card-header">
@@ -30,18 +55,23 @@
         </div>
         <button id="card-close" class="card-close">×</button>
       </div>
-      
+
       <div id="card-body" class="card-body">
         <div id="card-content" class="card-content"></div>
         <div id="card-media" class="card-media"></div>
         <div id="card-tags" class="card-tags"></div>
+        <div id="card-links" class="card-links"></div>
       </div>
-      
+
       <div class="card-footer">
         <div class="card-actions">
           <button id="btn-random" class="action-btn random-btn">
             <span>→</span>
             <span>下一站</span>
+          </button>
+          <button id="btn-reselect" class="action-btn" style="display:none">
+            <span>←</span>
+            <span>重新选择日期</span>
           </button>
         </div>
       </div>
