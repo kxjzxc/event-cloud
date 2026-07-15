@@ -17,7 +17,7 @@ import * as http from 'http';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { exec } from 'child_process';
+import { execFile, exec } from 'child_process';
 import chalk from 'chalk';
 import { Builder } from '../core/builder';
 import { createDefaultRegistry } from '../registry';
@@ -387,11 +387,11 @@ Write your content here.
   });
 
 // ══════════════════════════════════════════════════════════════
-async function execGit(cmd: string, cwd: string): Promise<string> {
+async function execGit(args: string[], cwd: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    exec(cmd, { cwd, maxBuffer: 1024 * 1024 * 10 }, (err, stdout, stderr) => {
+    execFile('git', args, { cwd, maxBuffer: 1024 * 1024 * 10 }, (err, stdout, stderr) => {
       if (err) {
-        reject(new Error(`Git command failed: ${cmd}\n${stderr}`));
+        reject(new Error(`Git command failed: git ${args.join(' ')}\n${stderr}`));
       } else {
         resolve(stdout.trim());
       }
@@ -406,7 +406,7 @@ async function deployToGithubPages(config: TMConfig): Promise<void> {
     process.exit(1);
   }
 
-  const repo = deployConfig.repo;
+  const repo = process.env.EVC_DEPLOY_REPO || deployConfig.repo;
   const branch = deployConfig.branch || 'gh-pages';
   const message = deployConfig.message || 'Deploy Event Cloud';
   const outputPath = config.outputPath;
@@ -416,9 +416,15 @@ async function deployToGithubPages(config: TMConfig): Promise<void> {
     process.exit(1);
   }
 
+  const stat = fs.statSync(outputPath);
+  if (!stat.isDirectory()) {
+    console.error(chalk.red(`✗ Output path is not a directory: ${outputPath}`));
+    process.exit(1);
+  }
+
   if (!repo) {
     console.error(chalk.red('✗ GitHub repository URL is required.'));
-    console.error(chalk.gray('  Please set "deploy.repo" in config.json'));
+    console.error(chalk.gray('  Please set "deploy.repo" in config.json or EVC_DEPLOY_REPO env var'));
     process.exit(1);
   }
 
@@ -429,27 +435,37 @@ async function deployToGithubPages(config: TMConfig): Promise<void> {
     process.chdir(outputPath);
 
     if (fs.existsSync('.git')) {
-      await execGit('git fetch origin', outputPath);
-      await execGit(`git checkout ${branch}`, outputPath);
+      try {
+        await execGit(['remote', 'set-url', 'origin', repo], outputPath);
+      } catch {
+        await execGit(['remote', 'add', 'origin', repo], outputPath);
+      }
+      await execGit(['fetch', 'origin'], outputPath);
+      try {
+        await execGit(['checkout', branch], outputPath);
+      } catch {
+        await execGit(['checkout', '-b', branch], outputPath);
+      }
     } else {
-      await execGit('git init', outputPath);
-      await execGit(`git checkout -b ${branch}`, outputPath);
+      await execGit(['init'], outputPath);
+      await execGit(['remote', 'add', 'origin', repo], outputPath);
+      await execGit(['checkout', '-b', branch], outputPath);
     }
 
-    await execGit('git add -A', outputPath);
+    await execGit(['add', '-A'], outputPath);
 
-    const status = await execGit('git status --porcelain', outputPath);
+    const status = await execGit(['status', '--porcelain'], outputPath);
     if (!status) {
       console.log(chalk.yellow('⚠  No changes to deploy.'));
       return;
     }
 
-    await execGit('git config user.name "Event Cloud"', outputPath);
-    await execGit('git config user.email "deploy@event-cloud.local"', outputPath);
+    await execGit(['config', 'user.name', 'Event Cloud'], outputPath);
+    await execGit(['config', 'user.email', 'deploy@event-cloud.local'], outputPath);
 
-    await execGit(`git commit -m "${message}"`, outputPath);
+    await execGit(['commit', '-m', message], outputPath);
 
-    await execGit(`git push -f ${repo} ${branch}`, outputPath);
+    await execGit(['push', '-f', repo, branch], outputPath);
 
     console.log(chalk.green('✓ Deploy complete!'));
     const match = repo.match(/github\.com\/([^/]+)\/([^/.]+)/);
@@ -476,11 +492,13 @@ program
   .option('-c, --config <path>', 'Config file path', 'config.json')
   .option('--no-build', 'Skip build before deploy')
   .action(async (opts: { platform: string; config: string; build: boolean }) => {
-    const platform = opts.platform || 'github-pages';
+    const config = loadConfig(opts.config);
+
+    const platform = opts.platform || (config.deploy?.type || 'github-pages');
     const supported = ['github-pages', 'r2', 'oss'];
 
     console.log(chalk.cyan('⚙  Event Cloud — Deploy'));
-    console.log(chalk.gray(`   Platform: ${platform}`));
+    console.log(chalk.gray(`   Platform: ${platform}${opts.platform ? ' (from CLI)' : config.deploy?.type ? ' (from config)' : ' (default)'}`));
     console.log();
 
     if (!supported.includes(platform)) {
@@ -488,8 +506,6 @@ program
       console.error(chalk.gray(`  Supported: ${supported.join(', ')}`));
       process.exit(1);
     }
-
-    const config = loadConfig(opts.config);
 
     if (opts.build) {
       console.log(chalk.gray('   Building before deploy...'));
