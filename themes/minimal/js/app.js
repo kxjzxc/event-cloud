@@ -108,10 +108,10 @@
         if (m.type === 'image') {
           var src = m.previewPath || m.thumbnailPath;
           if (src) {
-            mediaHtml += '<img src="' + src + '" alt="' + (m.alt || '') + '" loading="lazy">';
+            mediaHtml += '<img src="' + escapeHtml(src) + '" alt="' + escapeHtml(m.alt || '') + '" loading="lazy">';
           }
         } else if (m.type === 'video' && m.thumbnailPath) {
-          mediaHtml += '<video controls preload="metadata"><source src="' + m.thumbnailPath + '" type="video/mp4"></video>';
+          mediaHtml += '<video controls preload="metadata"><source src="' + escapeHtml(m.thumbnailPath) + '" type="video/mp4"></video>';
         }
       });
       cardMedia.innerHTML = mediaHtml;
