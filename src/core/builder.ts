@@ -219,7 +219,7 @@ export class Builder {
       titleToId.set(e.title.toLowerCase(), e.id);
     }
 
-    // Siblings: events on the same date
+    // Siblings: events on the same date (reserved for future "same day navigation" feature)
     const dateGroups = new Map<string, TMEvent[]>();
     for (const e of events) {
       if (!dateGroups.has(e.date)) dateGroups.set(e.date, []);

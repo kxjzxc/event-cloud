@@ -34,6 +34,13 @@
     catch(e) { console.error('Failed to parse event data:', e); return []; }
   }
 
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, function(m) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+    });
+  }
+
   var currentEventIndex = -1;
   var allEvents = [];
   var historyStack = [];
@@ -124,7 +131,7 @@
     if (cardLinks) {
       if (event.links && event.links.length > 0) {
         cardLinks.innerHTML = event.links.map(function(l) {
-          return '<a href="#" data-link="' + l + '" class="card-link">' + l + '</a>';
+          return '<a href="#" data-link="' + escapeHtml(l) + '" class="card-link">' + escapeHtml(l) + '</a>';
         }).join('');
         cardLinks.style.display = 'block';
       } else {
@@ -136,12 +143,11 @@
 
   function openCard(index, startRandomMode) {
     if (index < 0 || index >= allEvents.length) return;
-    if (currentEventIndex >= 0) {
-      historyStack.push(currentEventIndex);
-    }
     if (startRandomMode) {
       isRandomMode = true;
       historyStack = [];
+    } else if (currentEventIndex >= 0) {
+      historyStack.push(currentEventIndex);
     }
     currentEventIndex = index;
     var event = allEvents[index];
@@ -273,7 +279,7 @@
     cardTitle.textContent = '选择记忆';
     var listHtml = dayEvents.map(function(e) {
       return '<div class="day-event-item" data-id="' + e.id + '">' +
-        '<div class="day-event-title">' + e.title + '</div>' +
+        '<div class="day-event-title">' + escapeHtml(e.title) + '</div>' +
         (e.media && e.media.length > 0 ? '<div class="day-event-has-media">📷</div>' : '') +
         '</div>';
     }).join('');
@@ -413,15 +419,16 @@
       }).join('');
 
       archiveGrid.querySelectorAll('.archive-card').forEach(function(card) {
-        card.addEventListener('click', function() {
-          var id = card.getAttribute('data-id');
-          var index = allEvents.findIndex(function(e) { return e.id === id; });
-          if (index >= 0) {
-            historyStack = [];
-            openCard(index);
-          }
-        });
+      card.addEventListener('click', function() {
+        var id = card.getAttribute('data-id');
+        var index = allEvents.findIndex(function(e) { return e.id === id; });
+        if (index >= 0) {
+          historyStack = [];
+          cardSource = 'archive';
+          openCard(index);
+        }
       });
+    });
     }
 
     renderTags();
