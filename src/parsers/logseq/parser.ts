@@ -185,7 +185,12 @@ export class LogseqParser implements IParser {
       // Skip H1 heading if it matches the page name
       const h1Match = line.trim().match(/^#\s+(.+)$/);
       if (h1Match && h1Match[1].trim() === pageName) continue;
-      cleaned.push(line);
+      // Strip leading list markers (- or *) from top-level items
+      let processedLine = line;
+      if (!line.startsWith('  ') && !line.startsWith('\t')) {
+        processedLine = line.replace(/^[-*]\s+/, '');
+      }
+      cleaned.push(processedLine);
     }
 
     return cleaned.join('\n').trim();

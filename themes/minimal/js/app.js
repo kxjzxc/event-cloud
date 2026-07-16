@@ -103,19 +103,58 @@
     cardContent.innerHTML = content;
 
     if (cardMedia) {
-      var mediaHtml = '';
+      var mediaItems = [];
       event.media.forEach(function(m) {
         if (m.type === 'image') {
           var src = m.previewPath || m.thumbnailPath;
           if (src) {
-            mediaHtml += '<img src="' + src + '" alt="' + (m.alt || '') + '" loading="lazy">';
+            mediaItems.push({ type: 'image', src: src, alt: m.alt || '' });
           }
         } else if (m.type === 'video' && m.thumbnailPath) {
-          mediaHtml += '<video controls preload="metadata"><source src="' + m.thumbnailPath + '" type="video/mp4"></video>';
+          mediaItems.push({ type: 'video', src: m.thumbnailPath });
         }
       });
-      cardMedia.innerHTML = mediaHtml;
-      cardMedia.style.display = mediaHtml ? 'grid' : 'none';
+      
+      if (mediaItems.length === 0) {
+        cardMedia.innerHTML = '';
+        cardMedia.style.display = 'none';
+      } else if (mediaItems.length === 1) {
+        var singleHtml = '';
+        var item = mediaItems[0];
+        if (item.type === 'image') {
+          singleHtml = '<img src="' + item.src + '" alt="' + item.alt + '" loading="lazy">';
+        } else {
+          singleHtml = '<video controls preload="metadata"><source src="' + item.src + '" type="video/mp4"></video>';
+        }
+        cardMedia.innerHTML = singleHtml;
+        cardMedia.style.display = 'block';
+      } else {
+        var galleryHtml = '<div class="media-gallery" id="media-gallery">';
+        mediaItems.forEach(function(item, i) {
+          if (item.type === 'image') {
+            galleryHtml += '<div class="media-item" data-index="' + i + '"><img src="' + item.src + '" alt="' + item.alt + '" loading="lazy"></div>';
+          } else {
+            galleryHtml += '<div class="media-item" data-index="' + i + '"><video controls preload="metadata"><source src="' + item.src + '" type="video/mp4"></video></div>';
+          }
+        });
+        galleryHtml += '</div>';
+        
+        galleryHtml += '<div class="media-nav">';
+        galleryHtml += '<button class="media-nav-btn prev" id="media-prev">←</button>';
+        galleryHtml += '<button class="media-nav-btn next" id="media-next">→</button>';
+        galleryHtml += '</div>';
+        
+        galleryHtml += '<div class="media-indicators" id="media-indicators">';
+        mediaItems.forEach(function(item, i) {
+          galleryHtml += '<span class="media-indicator' + (i === 0 ? ' active' : '') + '" data-index="' + i + '"></span>';
+        });
+        galleryHtml += '</div>';
+        
+        cardMedia.innerHTML = galleryHtml;
+        cardMedia.style.display = 'block';
+        
+        initMediaGallery();
+      }
     }
 
     if (cardTags) {
@@ -141,6 +180,72 @@
         cardLinks.style.display = 'none';
       }
     }
+  }
+
+  function initMediaGallery() {
+    var gallery = document.getElementById('media-gallery');
+    var prevBtn = document.getElementById('media-prev');
+    var nextBtn = document.getElementById('media-next');
+    var indicators = document.getElementById('media-indicators');
+    
+    if (!gallery) return;
+    
+    var items = gallery.querySelectorAll('.media-item');
+    var currentIndex = 0;
+    
+    function updateIndicators() {
+      if (indicators) {
+        indicators.querySelectorAll('.media-indicator').forEach(function(ind, i) {
+          ind.classList.toggle('active', i === currentIndex);
+        });
+      }
+    }
+    
+    function scrollTo(index) {
+      if (index < 0) index = items.length - 1;
+      if (index >= items.length) index = 0;
+      currentIndex = index;
+      var item = items[index];
+      if (item) {
+        item.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+      }
+      updateIndicators();
+    }
+    
+    if (prevBtn) {
+      prevBtn.addEventListener('click', function() {
+        scrollTo(currentIndex - 1);
+      });
+    }
+    
+    if (nextBtn) {
+      nextBtn.addEventListener('click', function() {
+        scrollTo(currentIndex + 1);
+      });
+    }
+    
+    if (indicators) {
+      indicators.querySelectorAll('.media-indicator').forEach(function(ind) {
+        ind.addEventListener('click', function() {
+          var idx = parseInt(this.getAttribute('data-index'), 10);
+          scrollTo(idx);
+        });
+      });
+    }
+    
+    gallery.addEventListener('scroll', function() {
+      var containerWidth = gallery.offsetWidth;
+      items.forEach(function(item, i) {
+        var rect = item.getBoundingClientRect();
+        var galleryRect = gallery.getBoundingClientRect();
+        var offsetLeft = rect.left - galleryRect.left;
+        var center = containerWidth / 2;
+        if (Math.abs(offsetLeft + rect.width / 2 - center) < rect.width / 3) {
+          currentIndex = i;
+          updateIndicators();
+        }
+      });
+    }, { passive: true });
   }
 
   function openCard(index, startRandomMode) {
