@@ -251,20 +251,27 @@ html, body {
 }
 
 .card-media {
-  padding: 0 2rem;
-  margin-bottom: 1.5rem;
+  padding: 1rem 0;
+  margin-bottom: 1rem;
   position: relative;
   overflow: hidden;
+}
+
+.media-gallery-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 0;
 }
 
 .media-gallery {
   display: flex;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  gap: 1rem;
-  padding: 0.5rem 0;
+  gap: 0;
+  padding: 0;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  width: 100%;
 }
 
 .media-gallery::-webkit-scrollbar {
@@ -274,7 +281,7 @@ html, body {
 .media-item {
   flex: 0 0 auto;
   width: 100%;
-  max-width: 500px;
+  max-width: 480px;
   margin: 0 auto;
   scroll-snap-align: center;
   border-radius: 12px;
@@ -293,8 +300,10 @@ html, body {
 .media-nav {
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 100%;
+  max-width: 520px;
   display: flex;
   justify-content: space-between;
   padding: 0;
@@ -302,10 +311,10 @@ html, body {
 }
 
 .media-nav-btn {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   border: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -313,9 +322,10 @@ html, body {
   cursor: pointer;
   pointer-events: auto;
   transition: all 0.2s;
-  font-size: 1.2rem;
+  font-size: 1rem;
   color: var(--text);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
 }
 
 .media-nav-btn:hover {
@@ -325,11 +335,11 @@ html, body {
 }
 
 .media-nav-btn.prev {
-  margin-left: -10px;
+  margin-left: -18px;
 }
 
 .media-nav-btn.next {
-  margin-right: -10px;
+  margin-right: -18px;
 }
 
 .media-indicators {

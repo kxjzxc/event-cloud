@@ -129,7 +129,8 @@
         cardMedia.innerHTML = singleHtml;
         cardMedia.style.display = 'block';
       } else {
-        var galleryHtml = '<div class="media-gallery" id="media-gallery">';
+        var galleryHtml = '<div class="media-gallery-wrapper">';
+        galleryHtml += '<div class="media-gallery" id="media-gallery">';
         mediaItems.forEach(function(item, i) {
           if (item.type === 'image') {
             galleryHtml += '<div class="media-item" data-index="' + i + '"><img src="' + item.src + '" alt="' + item.alt + '" loading="lazy"></div>';
@@ -137,6 +138,7 @@
             galleryHtml += '<div class="media-item" data-index="' + i + '"><video controls preload="metadata"><source src="' + item.src + '" type="video/mp4"></video></div>';
           }
         });
+        galleryHtml += '</div>';
         galleryHtml += '</div>';
         
         galleryHtml += '<div class="media-nav">';
