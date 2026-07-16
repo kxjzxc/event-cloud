@@ -46,6 +46,8 @@
   var historyStack = [];
   var isRandomMode = false;
   var cardSource = null;
+  var currentDayEvents = null;
+  var currentDayDate = null;
 
   var modal = document.getElementById('card-modal');
   var cardDate = document.getElementById('card-date');
@@ -158,10 +160,14 @@
 
   function navigateBack() {
     if (historyStack.length > 0) {
-      var prevIndex = historyStack.pop();
-      currentEventIndex = prevIndex;
-      var event = allEvents[prevIndex];
-      renderCard(event);
+      var prevState = historyStack.pop();
+      if (prevState.type === 'day-selector') {
+        showDaySelector(prevState.date, prevState.events);
+      } else {
+        currentEventIndex = prevState;
+        var event = allEvents[prevState];
+        renderCard(event);
+      }
     } else {
       closeCard();
       if (cardSource === 'date-picker') {
@@ -192,7 +198,8 @@
     if (totalEl) totalEl.textContent = allEvents.length;
 
     var unlocked = getUnlocked();
-    var unlockedCount = Object.keys(unlocked).length;
+    var validEventIds = new Set(allEvents.map(function(e) { return e.id; }));
+    var unlockedCount = Object.keys(unlocked).filter(function(id) { return validEventIds.has(id); }).length;
     var unlockedEl = document.getElementById('unlocked-count');
     if (unlockedEl) unlockedEl.textContent = unlockedCount;
 
@@ -252,6 +259,7 @@
             openCard(index);
           }
         } else {
+          cardSource = 'date-picker';
           showDaySelector(date, dayEvents);
         }
       });
@@ -275,6 +283,8 @@
 
   function showDaySelector(date, dayEvents) {
     if (!modal) return;
+    currentDayDate = date;
+    currentDayEvents = dayEvents;
     cardDate.textContent = date;
     cardTitle.textContent = '选择记忆';
     var listHtml = dayEvents.map(function(e) {
@@ -288,9 +298,10 @@
     if (cardTags) { cardTags.innerHTML = ''; cardTags.style.display = 'none'; }
     if (cardLinks) { cardLinks.innerHTML = ''; cardLinks.style.display = 'none'; }
     var randomBtn = document.getElementById('btn-random');
-    if (randomBtn) randomBtn.style.display = 'none';
+    if (randomBtn) randomBtn.style.display = '';
+    randomBtn.textContent = '← 返回';
     var reselectBtn = document.getElementById('btn-reselect');
-    if (reselectBtn) reselectBtn.style.display = '';
+    if (reselectBtn) reselectBtn.style.display = 'none';
     modal.classList.add('active');
 
     var items = document.querySelectorAll('.day-event-item');
@@ -299,7 +310,7 @@
         var id = this.getAttribute('data-id');
         var index = allEvents.findIndex(function(e) { return e.id === id; });
         if (index >= 0) {
-          historyStack = [];
+          historyStack.push({ type: 'day-selector', date: date, events: dayEvents });
           cardSource = 'date-picker';
           openCard(index);
         }
