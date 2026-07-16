@@ -124,10 +124,10 @@ html, body {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  width: 90%;
-  max-width: 680px;
-  height: 80vh;
-  max-height: 600px;
+  width: 95%;
+  max-width: 800px;
+  height: 85vh;
+  max-height: 700px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -251,7 +251,7 @@ html, body {
 }
 
 .card-media {
-  padding: 0 1.5rem;
+  padding: 0 2rem;
   margin-bottom: 1.5rem;
   position: relative;
   overflow: hidden;
@@ -274,6 +274,8 @@ html, body {
 .media-item {
   flex: 0 0 auto;
   width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
   scroll-snap-align: center;
   border-radius: 12px;
   overflow: hidden;
@@ -295,7 +297,7 @@ html, body {
   width: 100%;
   display: flex;
   justify-content: space-between;
-  padding: 0 0.5rem;
+  padding: 0;
   pointer-events: none;
 }
 
@@ -323,11 +325,11 @@ html, body {
 }
 
 .media-nav-btn.prev {
-  left: 0;
+  margin-left: -10px;
 }
 
 .media-nav-btn.next {
-  right: 0;
+  margin-right: -10px;
 }
 
 .media-indicators {
