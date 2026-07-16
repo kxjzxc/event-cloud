@@ -263,7 +263,6 @@ html, body {
   scroll-snap-type: x mandatory;
   gap: 1rem;
   padding: 0.5rem 0;
-  justify-content: center;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -274,8 +273,7 @@ html, body {
 
 .media-item {
   flex: 0 0 auto;
-  width: 80%;
-  max-width: 400px;
+  width: 100%;
   scroll-snap-align: center;
   border-radius: 12px;
   overflow: hidden;
