@@ -51,6 +51,22 @@ export class LogseqParser implements IParser {
       if (event) allEvents.push(event);
     }
 
+    const journalFiles = this.findMarkdownFiles(journalsDir);
+    for (const file of journalFiles) {
+      const filename = path.basename(file, '.md');
+      const journalDate = this.extractDateFromFilename(filename);
+      if (!journalDate) continue;
+
+      const relPath = path.relative(graphPath, file);
+      const content = fs.readFileSync(file, 'utf-8');
+      const blocks = this.parseBlocks(content);
+
+      for (const block of blocks) {
+        const event = this.blockToEvent(block, journalDate, relPath, graphPath);
+        if (event) allEvents.push(event);
+      }
+    }
+
     return allEvents;
   }
 
