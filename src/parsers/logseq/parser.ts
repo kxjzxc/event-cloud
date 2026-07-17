@@ -55,7 +55,7 @@ export class LogseqParser implements IParser {
       if (event) allEvents.push(event);
     }
 
-    const journalFiles = this.findMarkdownFiles(journalsDir);
+    const journalFiles = [...new Set(this.findMarkdownFiles(journalsDir))];
     for (const file of journalFiles) {
       const filename = path.basename(file, '.md');
       const journalDate = this.extractDateFromFilename(filename);
@@ -568,6 +568,12 @@ export class LogseqParser implements IParser {
         result = result.replace(placeholder, iframe);
       }
     });
+
+    const remainingPlaceholders = result.match(/<!--EVENT_CLOUD_IFRAME_\d+-->/g);
+    const missing = iframeMatches.length - (remainingPlaceholders ? remainingPlaceholders.length : 0);
+    if (missing > 0) {
+      console.warn(`[parser] ${missing} iframe(s) lost during markdown render`);
+    }
 
     // Post-process: make Logseq link anchors styled
     result = result.replace(
