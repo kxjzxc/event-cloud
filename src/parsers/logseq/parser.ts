@@ -198,18 +198,23 @@ export class LogseqParser implements IParser {
   }
 
   /**
-   * Strip property lines and leading H1 heading (if it matches page name).
+   * Strip property lines, Logseq metadata blocks (:LOGBOOK:...:END:),
+   * and leading H1 heading (if it matches page name).
    * Returns clean markdown content for rendering.
    */
   private stripProperties(content: string, pageName: string): string {
-    const lines = content.split('\n');
+    // Remove :LOGBOOK: ... :END: blocks (Logseq internal clock metadata)
+    let stripped = content.replace(/:LOGBOOK:[\s\S]*?:END:/g, '');
+
+    const lines = stripped.split('\n');
     const cleaned: string[] = [];
 
     for (const line of lines) {
-      // Skip property lines
-      if (this.isProperty(line.trim())) continue;
+      const trimmed = line.trim();
+      // Skip property lines (key:: value)
+      if (this.isProperty(trimmed)) continue;
       // Skip H1 heading if it matches the page name
-      const h1Match = line.trim().match(/^#\s+(.+)$/);
+      const h1Match = trimmed.match(/^#\s+(.+)$/);
       if (h1Match && h1Match[1].trim() === pageName) continue;
       cleaned.push(line);
     }
@@ -269,7 +274,9 @@ export class LogseqParser implements IParser {
    * the nearest parent block.
    */
   private parseBlocks(content: string): LogseqBlock[] {
-    const lines = content.split('\n');
+    // Strip Logseq clock/timer metadata blocks before parsing
+    const cleaned = content.replace(/:LOGBOOK:[\s\S]*?:END:/g, '');
+    const lines = cleaned.split('\n');
     const roots: LogseqBlock[] = [];
     const stack: { block: LogseqBlock; indent: number }[] = [];
 
