@@ -84,23 +84,29 @@
     var reselectBtn = document.getElementById('btn-reselect');
     if (reselectBtn) reselectBtn.style.display = 'none';
 
-    var content = event.contentHtml || '<p>No content</p>';
-    if (event.media) {
-      var mediaMap = {};
-      event.media.forEach(function(m) {
-        if (m.previewPath) {
-          var filename = m.originalPath ? m.originalPath.split('/').pop() : '';
-          if (filename) mediaMap[filename] = m.previewPath;
-        } else if (m.thumbnailPath) {
-          var filename = m.originalPath ? m.originalPath.split('/').pop() : '';
-          if (filename) mediaMap[filename] = m.thumbnailPath;
+    // Strip ec-img tags from contentHtml (images are rendered via event.media below,
+    // which has correct site-relative paths). Keep iframes in place.
+    var rawContent = event.contentHtml || '<p>No content</p>';
+    var textContent = rawContent.replace(/<img[^>]*class="ec-img"[^>]*>/g, '');
+
+    // Use DOMParser + live iframe recreation so Spotify/YouTube embeds actually load.
+    // innerHTML cannot create live iframes (browser security restriction).
+    cardContent.innerHTML = '';
+    var parser = new DOMParser();
+    var doc = parser.parseFromString('<div>' + textContent + '</div>', 'text/html');
+    var wrapper = doc.body.firstChild;
+    if (wrapper) {
+      wrapper.querySelectorAll('iframe').forEach(function(srcIframe) {
+        var liveIframe = document.createElement('iframe');
+        for (var i = 0; i < srcIframe.attributes.length; i++) {
+          liveIframe.setAttribute(srcIframe.attributes[i].name, srcIframe.attributes[i].value);
         }
+        srcIframe.parentNode.replaceChild(liveIframe, srcIframe);
       });
-      for (var filename in mediaMap) {
-        content = content.replace(new RegExp('src="#' + filename + '"', 'g'), 'src="' + mediaMap[filename] + '"');
+      while (wrapper.firstChild) {
+        cardContent.appendChild(wrapper.firstChild);
       }
     }
-    cardContent.innerHTML = content;
 
     if (cardMedia) {
       var mediaHtml = '';
