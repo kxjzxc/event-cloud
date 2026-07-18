@@ -71,8 +71,33 @@ evc init --graph <path> --output <path>
 | `build --dry-run` | 仅解析，不生成输出，用于检查 Event 数量 |
 | `build -v` | 详细日志 |
 | `preview` | 启动本地静态服务器预览 `dist/` |
-| `deploy` | 部署到远程平台（占位，未来支持 GitHub Pages / R2 / OSS） |
+| `deploy` | 触发 GitHub Actions CI 流水线，由 CI 统一构建并部署到 GitHub Pages |
 | `init` | 初始化新的 `config.json` |
+
+### Deploy 配置
+
+`evc deploy` 通过 GitHub API 触发 `repository_dispatch` 事件，让 CI 统一完成构建和发布，本地不再直接 `git push` 到 `gh-pages`。
+
+**环境变量：**
+
+```bash
+export GITHUB_TOKEN=<PAT>   # 需要 repo（或 public_repo）权限
+```
+
+**config.json 示例：**
+
+```json
+{
+  "deploy": {
+    "type": "github-pages",
+    "repo": "https://github.com/owner/repo.git",
+    "githubRepo": "owner/repo",
+    "branch": "gh-pages"
+  }
+}
+```
+
+`githubRepo` 填写 `owner/repo` 格式，若留空则自动从 `repo` URL 解析。
 
 ## Event 识别规则
 

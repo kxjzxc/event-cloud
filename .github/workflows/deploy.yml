@@ -7,64 +7,67 @@ on:
       - master
   repository_dispatch:
     types:
-      - graph-update
+      - deploy
+
+permissions:
+  contents: write
+  pages: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pages: write
     steps:
       - name: Checkout Event Cloud
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.EVENT_CLOUD_PAT }}
           submodules: true
           fetch-depth: 0
 
-      - name: Configure Git for Submodule Access
+      - name: Configure Git for Push
         run: |
-          git config --global url."https://x-access-token:${{ secrets.EVENT_CLOUD_PAT }}@github.com/".insteadOf "https://github.com/"
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
       - name: Update Graph Submodule
-        id: update-submodule
         run: |
           git submodule update --remote --merge
           git add graph
           if git diff --cached --quiet; then
-            echo "::set-output name=has-changes::false"
-            echo "No submodule changes to commit"
+            echo "No submodule changes."
           else
-            echo "::set-output name=has-changes::true"
-            git commit -m "Update graph submodule from webhook"
-            git push origin ${{ github.ref_name }}
+            git commit -m "Update graph submodule"
+            git push origin main
           fi
 
       - name: Set up Node.js
-        if: steps.update-submodule.outputs.has-changes == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
+          cache: 'npm'
 
       - name: Install Dependencies
-        if: steps.update-submodule.outputs.has-changes == 'true'
         run: npm ci
 
       - name: Build Project
-        if: steps.update-submodule.outputs.has-changes == 'true'
         run: npm run build
 
       - name: Generate Site
-        if: steps.update-submodule.outputs.has-changes == 'true'
         run: npx evc generate
 
+      - name: Set deploy commit message
+        id: deploy-msg
+        run: |
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            echo "value=Deploy Event Cloud - Triggered by evc deploy" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=Deploy Event Cloud - Graph updated" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Deploy to GitHub Pages
-        if: steps.update-submodule.outputs.has-changes == 'true'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.EVENT_CLOUD_PAT }}
           publish_dir: ./dist
           publish_branch: gh-pages
-          commit_message: "Deploy Event Cloud - Graph updated"
+          commit_message: ${{ steps.deploy-msg.outputs.value }}

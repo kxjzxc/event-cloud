@@ -127,6 +127,12 @@ export interface DeployConfig {
   repo?: string;
   branch?: string;
   message?: string;
+  /**
+   * GitHub owner/repo slug (e.g. "kxjzxc/event-cloud").
+   * Required for triggering repository_dispatch via CI Webhook.
+   * Falls back to parsing `repo` URL if omitted.
+   */
+  githubRepo?: string;
 }
 
 export interface ThemeConfig {

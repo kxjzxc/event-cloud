@@ -399,86 +399,98 @@ async function execGit(args: string[], cwd: string): Promise<string> {
   });
 }
 
+/**
+ * Trigger a GitHub Actions `repository_dispatch` event to kick off the
+ * CI deploy pipeline. This keeps local and CI builds consistent —
+ * the actual build + gh-pages push is always handled by the same workflow.
+ *
+ * Required env var: GITHUB_TOKEN (a PAT with `repo` scope)
+ * Required config:  deploy.repo or deploy.githubRepo
+ */
 async function deployToGithubPages(config: TMConfig): Promise<void> {
   const deployConfig = config.deploy;
   if (!deployConfig || deployConfig.type !== 'github-pages') {
     console.error(chalk.red('✗ Deploy config not found or invalid.'));
+    console.error(chalk.gray('  Ensure config.json has "deploy": { "type": "github-pages", "repo": "..." }'));
     process.exit(1);
   }
 
-  const repo = process.env.EVC_DEPLOY_REPO || deployConfig.repo;
-  const branch = deployConfig.branch || 'gh-pages';
-  const message = deployConfig.message || 'Deploy Event Cloud';
-  const outputPath = config.outputPath;
+  // Resolve owner/repo slug from deploy.githubRepo or parse deploy.repo URL
+  let slug = process.env.EVC_GITHUB_REPO || deployConfig.githubRepo;
+  if (!slug) {
+    const repoUrl = process.env.EVC_DEPLOY_REPO || deployConfig.repo;
+    if (!repoUrl) {
+      console.error(chalk.red('✗ Cannot determine GitHub repository.'));
+      console.error(chalk.gray('  Set "deploy.githubRepo" (e.g. "owner/repo") in config.json'));
+      console.error(chalk.gray('  or export EVC_GITHUB_REPO=owner/repo'));
+      process.exit(1);
+    }
+    const match = repoUrl.match(/github\.com[/:]([^/]+\/[^/.]+)/);
+    if (!match) {
+      console.error(chalk.red(`✗ Cannot parse GitHub repo from URL: ${repoUrl}`));
+      process.exit(1);
+    }
+    slug = match[1].replace(/\.git$/, '');
+  }
 
-  if (!fs.existsSync(outputPath)) {
-    console.error(chalk.red(`✗ Output directory not found: ${outputPath}`));
+  const token = process.env.GITHUB_TOKEN || process.env.EVC_GITHUB_TOKEN;
+  if (!token) {
+    console.error(chalk.red('✗ GitHub token not found.'));
+    console.error(chalk.gray('  Export GITHUB_TOKEN=<PAT with repo scope>'));
+    console.error(chalk.gray('  The PAT must have "repo" (or "public_repo") permission.'));
     process.exit(1);
   }
 
-  const stat = fs.statSync(outputPath);
-  if (!stat.isDirectory()) {
-    console.error(chalk.red(`✗ Output path is not a directory: ${outputPath}`));
-    process.exit(1);
-  }
+  const apiUrl = `https://api.github.com/repos/${slug}/dispatches`;
+  const payload = JSON.stringify({
+    event_type: 'deploy',
+    client_payload: { triggered_by: 'evc-deploy', timestamp: new Date().toISOString() },
+  });
 
-  if (!repo) {
-    console.error(chalk.red('✗ GitHub repository URL is required.'));
-    console.error(chalk.gray('  Please set "deploy.repo" in config.json or EVC_DEPLOY_REPO env var'));
-    process.exit(1);
-  }
+  console.log(chalk.cyan(`   Triggering CI deploy for ${slug}...`));
 
-  console.log(chalk.cyan(`   Deploying to ${repo}#${branch}...`));
+  await new Promise<void>((resolve, reject) => {
+    const url = new URL(apiUrl);
+    const reqOpts = {
+      hostname: url.hostname,
+      path: url.pathname,
+      method: 'POST',
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': `Bearer ${token}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload),
+        'User-Agent': 'event-cloud-cli',
+      },
+    };
 
-  const originalDir = process.cwd();
-  try {
-    process.chdir(outputPath);
-
-    if (fs.existsSync('.git')) {
-      try {
-        await execGit(['remote', 'set-url', 'origin', repo], outputPath);
-      } catch {
-        await execGit(['remote', 'add', 'origin', repo], outputPath);
+    const https = require('https') as typeof import('https');
+    const req = https.request(reqOpts, (res) => {
+      if (res.statusCode === 204) {
+        resolve();
+      } else {
+        let body = '';
+        res.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+        res.on('end', () => {
+          reject(new Error(`GitHub API responded with ${res.statusCode}: ${body}`));
+        });
       }
-      await execGit(['fetch', 'origin'], outputPath);
-      try {
-        await execGit(['checkout', branch], outputPath);
-      } catch {
-        await execGit(['checkout', '-b', branch], outputPath);
-      }
-    } else {
-      await execGit(['init'], outputPath);
-      await execGit(['remote', 'add', 'origin', repo], outputPath);
-      await execGit(['checkout', '-b', branch], outputPath);
-    }
-
-    await execGit(['add', '-A'], outputPath);
-
-    const status = await execGit(['status', '--porcelain'], outputPath);
-    if (!status) {
-      console.log(chalk.yellow('⚠  No changes to deploy.'));
-      return;
-    }
-
-    await execGit(['config', 'user.name', 'Event Cloud'], outputPath);
-    await execGit(['config', 'user.email', 'deploy@event-cloud.local'], outputPath);
-
-    await execGit(['commit', '-m', message], outputPath);
-
-    await execGit(['push', '-f', repo, branch], outputPath);
-
-    console.log(chalk.green('✓ Deploy complete!'));
-    const match = repo.match(/github\.com\/([^/]+)\/([^/.]+)/);
-    if (match) {
-      console.log(chalk.gray(`   Your site is now live at: https://${match[1]}.github.io/${match[2]}/`));
-    }
-  } catch (err: any) {
-    console.error(chalk.red('✗ Deploy failed:'));
-    console.error(chalk.gray(err.message));
+    });
+    req.on('error', reject);
+    req.write(payload);
+    req.end();
+  }).catch((err: Error) => {
+    console.error(chalk.red('✗ Deploy failed — could not trigger CI workflow:'));
+    console.error(chalk.gray(`  ${err.message}`));
     process.exit(1);
-  } finally {
-    process.chdir(originalDir);
-  }
+  });
+
+  console.log(chalk.green('✓ CI deploy triggered!'));
+  console.log(chalk.gray(`   GitHub Actions will build and publish the site.`));
+  console.log(chalk.gray(`   Track progress: https://github.com/${slug}/actions`));
+  const [owner, repo] = slug.split('/');
+  console.log(chalk.gray(`   Live site (once deployed): https://${owner}.github.io/${repo}/`));
 }
 
 // evc deploy | d
