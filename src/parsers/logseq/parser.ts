@@ -138,7 +138,7 @@ export class LogseqParser implements IParser {
     const tags = this.extractAllTags(rawContent, pageProperties);
     const links = this.extractLinks(rawContent);
     const media = this.extractMedia(rawContent, graphPath);
-    const contentRaw = this.stripProperties(rawContent, pageName);
+    const contentRaw = this.blocksToPageMarkdown(blocks);
     const contentHtml = this.renderMarkdown(contentRaw);
 
     return {
@@ -156,6 +156,38 @@ export class LogseqParser implements IParser {
       backlinkIds: [],
       relatedIds: [],
     };
+  }
+
+  /**
+   * Convert page-level Logseq blocks into plain markdown paragraphs.
+   *
+   * Logseq uses an outliner format where every line starts with "- ".
+   * When rendering to HTML we strip that prefix so content renders as
+   * normal paragraphs (<p>) rather than list items (<ul><li>).
+   *
+   * Each top-level block becomes its own paragraph separated by a blank
+   * line, so marked produces proper <p> spacing. Nested child blocks are
+   * kept as markdown lists (they are genuine sub-items). Inline images and
+   * other inline elements keep their original position within each block.
+   */
+  private blocksToPageMarkdown(blocks: LogseqBlock[]): string {
+    // Filter out pure-property blocks (type::, date::, tags::, etc.)
+    const contentBlocks = blocks.filter(
+      (b) => !this.isProperty(b.content.trim()) && b.content.trim() !== '',
+    );
+
+    const paragraphs: string[] = [];
+    for (const block of contentBlocks) {
+      let md = block.content;
+      if (block.children.length > 0) {
+        const childMd = this.childrenToMarkdown(block.children);
+        if (childMd) {
+          md += '\n' + childMd;
+        }
+      }
+      paragraphs.push(md);
+    }
+    return paragraphs.join('\n\n');
   }
 
   /**

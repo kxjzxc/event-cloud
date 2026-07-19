@@ -130,20 +130,22 @@ export class Builder {
       }
 
       // Rewrite inline image paths in contentHtml:
-      // The parser emits <img class="ec-img" src="ORIG_PATH" data-ec-orig="ORIG_PATH">
-      // Replace src with the processed thumbnail path and add data-preview attribute.
+      // The parser emits <img class="ec-img" src="ORIG_PATH" data-ec-orig="ORIG_PATH" alt="..." loading="lazy">
+      // Replace the whole <img> with a clean version using processed WebP paths.
+      // We match the entire tag and rebuild it from scratch to avoid duplicate attributes.
       if (origToThumb.size > 0) {
         event.contentHtml = event.contentHtml.replace(
-          /<img([^>]*?)data-ec-orig="([^"]+)"([^>]*?)>/g,
-          (match, before: string, origSrc: string, after: string) => {
-            // Resolve the origSrc against the graph path to find the absolute path
+          /<img[^>]*?data-ec-orig="([^"]+)"[^>]*?>/g,
+          (match, origSrc: string) => {
             const resolved = this.resolveOrigSrc(origSrc, this.config.logseqPath);
             const thumb = origToThumb.get(resolved);
             const preview = origToPreview.get(resolved);
-            if (thumb) {
-              return `<img${before}class="ec-img" src="../${thumb}" data-preview="../${preview || thumb}"${after}>`;
-            }
-            return match;
+            if (!thumb) return match;
+
+            // Extract alt text from original tag
+            const altMatch = match.match(/\balt="([^"]*)"/);
+            const alt = altMatch ? altMatch[1] : '';
+            return `<img class="ec-img" src="../${thumb}" data-preview="../${preview || thumb}" alt="${alt}" loading="lazy">`;
           },
         );
       }

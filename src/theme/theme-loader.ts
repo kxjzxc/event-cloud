@@ -210,7 +210,8 @@ export function renderTemplate(template: string, data: Record<string, unknown>):
 
   for (const [key, value] of Object.entries(data)) {
     const stringValue = typeof value === 'string' ? value : String(value);
-    result = result.replace(new RegExp(`{{\\s*${key}\\s*}}`, 'g'), stringValue);
+    // Use a function replacer so "$", "$&", etc. in JSON/HTML are inserted literally.
+    result = result.replace(new RegExp(`{{\\s*${key}\\s*}}`, 'g'), () => stringValue);
   }
 
   return result;
