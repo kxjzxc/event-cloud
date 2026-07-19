@@ -163,22 +163,39 @@
     if (modal) modal.classList.add('active');
   }
 
+  function reopenDatePicker() {
+    currentEventIndex = -1;
+    if (modal) modal.classList.remove('active');
+    var dateModal = document.getElementById('date-modal');
+    if (dateModal) dateModal.classList.add('active');
+  }
+
   function navigateBack() {
     if (historyStack.length > 0) {
       var prevState = historyStack.pop();
-      if (prevState.type === 'day-selector') {
-        showDaySelector(prevState.date, prevState.events);
-      } else {
-        currentEventIndex = prevState;
-        var event = allEvents[prevState];
-        renderCard(event);
+      if (prevState && typeof prevState === 'object') {
+        if (prevState.type === 'day-selector') {
+          showDaySelector(prevState.date, prevState.events);
+          return;
+        }
+        if (prevState.type === 'date-picker') {
+          reopenDatePicker();
+          return;
+        }
       }
-    } else {
-      closeCard();
-      if (cardSource === 'date-picker') {
-        var dateModal = document.getElementById('date-modal');
-        if (dateModal) dateModal.classList.add('active');
-      }
+      // Numeric index: previous event card
+      currentEventIndex = prevState;
+      var event = allEvents[prevState];
+      if (event) renderCard(event);
+      return;
+    }
+
+    // Stack empty: restore entry source before closeCard clears it
+    var source = cardSource;
+    closeCard();
+    if (source === 'date-picker') {
+      var dateModal = document.getElementById('date-modal');
+      if (dateModal) dateModal.classList.add('active');
     }
   }
 
@@ -259,16 +276,23 @@
         var dayEvents = allEvents.filter(function(e) { return e.hasValidDate && e.date === date; });
         dateModal.classList.remove('active');
         if (dayEvents.length === 0) {
+          cardSource = 'date-picker';
+          historyStack = [{ type: 'date-picker' }];
           showMemoryLocked(date);
         } else if (dayEvents.length === 1) {
           var index = allEvents.findIndex(function(e) { return e.id === dayEvents[0].id; });
           if (index >= 0) {
-            historyStack = [];
+            // Push date-picker so 「返回」 restores the date modal, not the home page.
+            isRandomMode = false;
+            currentEventIndex = -1;
             cardSource = 'date-picker';
+            historyStack = [{ type: 'date-picker' }];
             openCard(index);
           }
         } else {
+          isRandomMode = false;
           cardSource = 'date-picker';
+          historyStack = [{ type: 'date-picker' }];
           showDaySelector(date, dayEvents);
         }
       });
@@ -277,6 +301,8 @@
 
   function showMemoryLocked(date) {
     if (!modal) return;
+    currentEventIndex = -1;
+    isRandomMode = false;
     cardDate.textContent = date;
     cardTitle.textContent = '记忆尚未解锁';
     cardContent.innerHTML = '<p style="text-align:center;color:var(--text-dim);padding:2rem 0;">这一天没有留下任何记录。</p>';
@@ -284,14 +310,21 @@
     if (cardTags) { cardTags.innerHTML = ''; cardTags.style.display = 'none'; }
     if (cardLinks) { cardLinks.innerHTML = ''; cardLinks.style.display = 'none'; }
     var randomBtn = document.getElementById('btn-random');
-    if (randomBtn) randomBtn.style.display = 'none';
+    // Keep 「返回」 so empty days also go back to the date picker via historyStack.
+    if (randomBtn) {
+      randomBtn.style.display = '';
+      randomBtn.textContent = '← 返回';
+    }
     var reselectBtn = document.getElementById('btn-reselect');
-    if (reselectBtn) reselectBtn.style.display = '';
+    if (reselectBtn) reselectBtn.style.display = 'none';
     modal.classList.add('active');
   }
 
   function showDaySelector(date, dayEvents) {
     if (!modal) return;
+    // Reset so openCard won't push a stale event index when picking from the list.
+    currentEventIndex = -1;
+    isRandomMode = false;
     currentDayDate = date;
     currentDayEvents = dayEvents;
     cardDate.textContent = date;

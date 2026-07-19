@@ -66,6 +66,13 @@ export class LogseqParser implements IParser {
       const blocks = this.parseBlocks(content);
 
       for (const block of blocks) {
+        // Journal blocks that are only [[page]] references are day indexes,
+        // not standalone events. Skip even when multiple links are concatenated
+        // into one block (Logseq soft-wrap without per-line "- ").
+        if (this.isWikiLinkOnlyContent(block.content)) {
+          continue;
+        }
+
         const blockTitle = this.stripMarkdown(block.content).trim();
         const pageFilePath = path.join(pagesDir, blockTitle + '.md');
         if (fs.existsSync(pageFilePath)) {
@@ -465,6 +472,25 @@ export class LogseqParser implements IParser {
       .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
       .replace(/[#*`~]/g, '')
       .trim();
+  }
+
+  /**
+   * True when block content is only one or more [[wiki links]] (plus whitespace).
+   * Used to skip journal "index" blocks that merely point at page events.
+   */
+  private isWikiLinkOnlyContent(content: string): boolean {
+    const text = content.trim();
+    if (!text) return false;
+
+    const links = this.extractLinks(text);
+    if (links.length === 0) return false;
+
+    // Remove wiki links; if nothing meaningful remains, this is an index block.
+    const remainder = text
+      .replace(/(?<!!)\[\[([^\]]+)\]\]/g, '')
+      .replace(/\s+/g, '')
+      .trim();
+    return remainder.length === 0;
   }
 
   private extractTags(block: LogseqBlock): string[] {
