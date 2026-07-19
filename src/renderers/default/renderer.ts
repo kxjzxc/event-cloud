@@ -18,7 +18,9 @@ export class DefaultRenderer implements IRenderer {
 
     const titleMap = new Map(events.map((e) => [e.id, e.title]));
 
-    const eventsJson = JSON.stringify(events);
+    // Escape </script> so JSON can safely sit inside <script type="application/json">
+    // without prematurely closing the tag when contentHtml contains iframes/scripts.
+    const eventsJson = JSON.stringify(events).replace(/<\/script/gi, '<\\/script');
 
     await storage.save('index.html', this.renderHome(indexJson, eventsJson, theme));
     await storage.save('archive.html', this.renderArchive(indexJson, eventsJson, theme));

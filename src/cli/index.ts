@@ -783,7 +783,10 @@ function createStaticServer(root: string): http.Server {
       '.ico': 'image/x-icon',
     };
 
-    res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' });
+    res.writeHead(200, {
+      'Content-Type': mimeTypes[ext] || 'application/octet-stream',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+    });
     fs.createReadStream(filePath).pipe(res);
   });
 }
