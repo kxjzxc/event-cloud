@@ -89,6 +89,11 @@
     // Use DOMParser + live iframe recreation so Spotify/YouTube embeds load.
     // innerHTML cannot create live iframes (browser security restriction).
     var rawContent = event.contentHtml || '<p>No content</p>';
+    // Adjust image paths for modal context. contentHtml is stored with paths
+    // relative to event pages (events/*.html), which use ../assets/. The modal
+    // is rendered from index.html at dist root, so we need assets/.
+    rawContent = rawContent.replace(/\.\.\/assets\//g, 'assets/');
+
     cardContent.innerHTML = '';
     var parser = new DOMParser();
     var doc = parser.parseFromString('<div>' + rawContent + '</div>', 'text/html');
