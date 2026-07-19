@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>班级团建爬梧桐山 — Event Cloud</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <a href="../index.html" class="back-home">← 返回</a>
+  
+  <div class="event-page" data-event-id="2018-10-27-班级团建爬梧桐山">
+    <header class="event-header">
+      <div class="event-date">2018-10-27</div>
+      <h1 class="event-title">班级团建爬梧桐山 — Event Cloud</h1>
+    </header>
+    
+    <article class="event-content">
+      <p><img class="ec-img" src="../assets/thumbnails/2026-07-17-23-04-21.webp" data-preview="../assets/previews/2026-07-17-23-04-21.webp" alt="2026-07-17-23-04-21.jpeg" loading="lazy"> <img class="ec-img" src="../assets/thumbnails/2026-07-17-23-04-40.webp" data-preview="../assets/previews/2026-07-17-23-04-40.webp" alt="2026-07-17-23-04-40.jpeg" loading="lazy"> <img class="ec-img" src="../assets/thumbnails/2026-07-17-23-05-15.webp" data-preview="../assets/previews/2026-07-17-23-05-15.webp" alt="2026-07-17-23-05-15.jpeg" loading="lazy"></p>
+
+    </article>
+    
+    
+    
+    
+    
+    
+  </div>
+  
+  <script src="../js/app.js"></script>
+  <script>
+    (function () {
+      // Lightbox for inline images (ec-img class)
+      var overlay = document.createElement('div');
+      overlay.id = 'ec-lightbox';
+      overlay.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;cursor:zoom-out;align-items:center;justify-content:center;';
+      var lightboxImg = document.createElement('img');
+      lightboxImg.style.cssText = 'max-width:92vw;max-height:92vh;border-radius:6px;box-shadow:0 4px 32px rgba(0,0,0,.6);';
+      overlay.appendChild(lightboxImg);
+      document.body.appendChild(overlay);
+
+      function openLightbox(src) {
+        lightboxImg.src = src;
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLightbox() {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      overlay.addEventListener('click', closeLightbox);
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeLightbox();
+      });
+
+      document.querySelectorAll('.ec-img').forEach(function(img) {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', function() {
+          var preview = img.getAttribute('data-preview') || img.src;
+          openLightbox(preview);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

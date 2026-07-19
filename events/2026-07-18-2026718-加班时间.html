@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026718 加班时间 — Event Cloud</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <a href="../index.html" class="back-home">← 返回</a>
+  
+  <div class="event-page" data-event-id="2026-07-18-2026718-加班时间">
+    <header class="event-header">
+      <div class="event-date">2026-07-18</div>
+      <h1 class="event-title">2026718 加班时间 — Event Cloud</h1>
+    </header>
+    
+    <article class="event-content">
+      <p>这个周六上海的天气潮热，出去玩也是折磨，不如待在有冷气的办公室，悠闲地做一下琐碎的需求。<br>本来想着下班再去一次露天电影节的音乐会，今天是《2001太空漫游》，但想到前两次炎热的体验，又没了心思。<br><img class="ec-img" src="../assets/thumbnails/2026-07-18-19-02-53.webp" data-preview="../assets/previews/2026-07-18-19-02-53.webp" alt="2026-07-18-19-02-53.jpeg" loading="lazy"> <img class="ec-img" src="../assets/thumbnails/2026-07-18-19-02-59.webp" data-preview="../assets/previews/2026-07-18-19-02-59.webp" alt="2026-07-18-19-02-59.jpeg" loading="lazy"></p>
+<p>中途给黄昏拍了个照，第一张图亮度调到最低，有点末世的诡异。</p>
+<p><img class="ec-img" src="../assets/thumbnails/2026-07-18-19-03-11.webp" data-preview="../assets/previews/2026-07-18-19-03-11.webp" alt="2026-07-18-19-03-11.jpeg" loading="lazy"> <img class="ec-img" src="../assets/thumbnails/2026-07-18-19-03-16.webp" data-preview="../assets/previews/2026-07-18-19-03-16.webp" alt="2026-07-18-19-03-16.jpeg" loading="lazy"></p>
+<p>下班准备去育音堂，发现乌云压城，远处暴雨倾泻，但愿这暑气能随暴雨释放掉。</p>
+<img class="ec-img" src="../assets/thumbnails/2026-07-18-19-04-38.webp" data-preview="../assets/previews/2026-07-18-19-04-38.webp" alt="2026-07-18-19-04-38.jpeg" loading="lazy">
+    </article>
+    
+    
+    
+    
+    
+    
+  </div>
+  
+  <script src="../js/app.js"></script>
+  <script>
+    (function () {
+      // Lightbox for inline images (ec-img class)
+      var overlay = document.createElement('div');
+      overlay.id = 'ec-lightbox';
+      overlay.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;cursor:zoom-out;align-items:center;justify-content:center;';
+      var lightboxImg = document.createElement('img');
+      lightboxImg.style.cssText = 'max-width:92vw;max-height:92vh;border-radius:6px;box-shadow:0 4px 32px rgba(0,0,0,.6);';
+      overlay.appendChild(lightboxImg);
+      document.body.appendChild(overlay);
+
+      function openLightbox(src) {
+        lightboxImg.src = src;
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLightbox() {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      overlay.addEventListener('click', closeLightbox);
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeLightbox();
+      });
+
+      document.querySelectorAll('.ec-img').forEach(function(img) {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', function() {
+          var preview = img.getAttribute('data-preview') || img.src;
+          openLightbox(preview);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

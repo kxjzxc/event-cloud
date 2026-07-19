@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>初至深圳市民中心 — Event Cloud</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <a href="../index.html" class="back-home">← 返回</a>
+  
+  <div class="event-page" data-event-id="2018-10-01-初至深圳市民中心">
+    <header class="event-header">
+      <div class="event-date">2018-10-01</div>
+      <h1 class="event-title">初至深圳市民中心 — Event Cloud</h1>
+    </header>
+    
+    <article class="event-content">
+      <p>2018的深圳市民中心与往后的7年没有太大的区别，唯一变化的还是我自己。<br>当时我刚来到深圳，这个城市和我将面对的生活对我来说都很新鲜。我在莲花山公园偶遇了为庆祝国庆而表演的人们；参观了往后几年再也没去过的深圳工业展览馆，见识到了很多在当时看来很有未来感的展品……而我最喜欢的，是站在巨大的市民中心下看着高高的穹顶，第一次体会到一种“巨构”的感觉，感受着大风从四面八方涌来，对未来的期待充盈我的内心。</p>
+<p><img class="ec-img" src="../assets/thumbnails/2026-07-17-22-39-56.webp" data-preview="../assets/previews/2026-07-17-22-39-56.webp" alt="2026-07-17-22-39-56.jpeg" loading="lazy"> <img class="ec-img" src="../assets/thumbnails/2026-07-17-22-41-57.webp" data-preview="../assets/previews/2026-07-17-22-41-57.webp" alt="2026-07-17-22-41-57.jpeg" loading="lazy"> <img class="ec-img" src="../assets/thumbnails/2026-07-17-22-42-21.webp" data-preview="../assets/previews/2026-07-17-22-42-21.webp" alt="2026-07-17-22-42-21.jpeg" loading="lazy"> <img class="ec-img" src="../assets/thumbnails/2026-07-17-22-42-48.webp" data-preview="../assets/previews/2026-07-17-22-42-48.webp" alt="2026-07-17-22-42-48.jpeg" loading="lazy"> <img class="ec-img" src="../assets/thumbnails/2026-07-17-22-43-11.webp" data-preview="../assets/previews/2026-07-17-22-43-11.webp" alt="2026-07-17-22-43-11.jpeg" loading="lazy"> <img class="ec-img" src="../assets/thumbnails/2026-07-17-22-43-34.webp" data-preview="../assets/previews/2026-07-17-22-43-34.webp" alt="2026-07-17-22-43-34.jpeg" loading="lazy"> <img class="ec-img" src="../assets/thumbnails/2026-07-17-22-44-00.webp" data-preview="../assets/previews/2026-07-17-22-44-00.webp" alt="2026-07-17-22-44-00.jpeg" loading="lazy"> <img class="ec-img" src="../assets/thumbnails/2026-07-17-22-44-25.webp" data-preview="../assets/previews/2026-07-17-22-44-25.webp" alt="2026-07-17-22-44-25.jpeg" loading="lazy"></p>
+
+    </article>
+    
+    
+    
+    
+    
+    
+  </div>
+  
+  <script src="../js/app.js"></script>
+  <script>
+    (function () {
+      // Lightbox for inline images (ec-img class)
+      var overlay = document.createElement('div');
+      overlay.id = 'ec-lightbox';
+      overlay.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;cursor:zoom-out;align-items:center;justify-content:center;';
+      var lightboxImg = document.createElement('img');
+      lightboxImg.style.cssText = 'max-width:92vw;max-height:92vh;border-radius:6px;box-shadow:0 4px 32px rgba(0,0,0,.6);';
+      overlay.appendChild(lightboxImg);
+      document.body.appendChild(overlay);
+
+      function openLightbox(src) {
+        lightboxImg.src = src;
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLightbox() {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      overlay.addEventListener('click', closeLightbox);
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeLightbox();
+      });
+
+      document.querySelectorAll('.ec-img').forEach(function(img) {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', function() {
+          var preview = img.getAttribute('data-preview') || img.src;
+          openLightbox(preview);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
