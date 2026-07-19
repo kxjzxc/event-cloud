@@ -214,9 +214,14 @@ html, body {
 .card-content ul, .card-content ol { margin-bottom: 1rem; padding-left: 1.5rem; }
 .card-content li { margin-bottom: 0.5rem; }
 .card-content img {
-  max-width: 100%;
-  border-radius: 8px;
-  margin: 1rem 0;
+  /* Match former .card-media sizing: thumbnails are only 200px intrinsic,
+     so without width:100% they look tiny after moving images inline. */
+  display: block;
+  width: 100%;
+  max-width: 500px;
+  margin: 1rem auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .day-event-list {
@@ -504,9 +509,11 @@ html, body {
 
 .event-content p { margin-bottom: 1rem; }
 .event-content img {
-  max-width: 100%;
-  border-radius: 8px;
-  margin: 1rem 0;
+  display: block;
+  width: 100%;
+  max-width: 500px;
+  margin: 1rem auto;
+  border-radius: 12px;
 }
 
 .event-media {
