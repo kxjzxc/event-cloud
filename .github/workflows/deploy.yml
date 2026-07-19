@@ -7,7 +7,10 @@ on:
       - master
   repository_dispatch:
     types:
+      # evc deploy CLI
       - deploy
+      # event-graph push webhook (legacy + current)
+      - graph-update
 
 permissions:
   contents: write
@@ -31,13 +34,27 @@ jobs:
 
       - name: Update Graph Submodule
         run: |
-          git submodule update --remote --merge
-          git add graph
+          set -euo pipefail
+          # Ensure submodule tracks event-graph main (required for --remote).
+          git config -f .gitmodules submodule.graph.branch main
+          git submodule sync --recursive
+
+          # Explicitly fetch + checkout latest main. Relying only on
+          # `submodule update --remote` is brittle when branch tracking
+          # was never configured (historically caused "No submodule changes"
+          # while event-graph had already advanced).
+          git -C graph fetch origin main
+          git -C graph checkout -B main origin/main
+
+          echo "graph HEAD: $(git -C graph rev-parse --short HEAD)"
+          echo "graph commit: $(git -C graph log -1 --oneline)"
+
+          git add graph .gitmodules
           if git diff --cached --quiet; then
             echo "No submodule changes."
           else
             git commit -m "Update graph submodule"
-            git push origin main
+            git push origin HEAD:main
           fi
 
       - name: Set up Node.js
@@ -59,7 +76,7 @@ jobs:
         id: deploy-msg
         run: |
           if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
-            echo "value=Deploy Event Cloud - Triggered by evc deploy" >> "$GITHUB_OUTPUT"
+            echo "value=Deploy Event Cloud - Triggered by ${{ github.event.action }}" >> "$GITHUB_OUTPUT"
           else
             echo "value=Deploy Event Cloud - Graph updated" >> "$GITHUB_OUTPUT"
           fi
