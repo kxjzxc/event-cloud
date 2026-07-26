@@ -178,6 +178,74 @@ html, body {
   line-height: 1.3;
 }
 
+/* Inline play buttons that replace music:: in content */
+.ec-music-plays {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0 0 1.25rem;
+}
+
+.card-content > p:has(> .ec-music-play:only-child) {
+  margin: 0 0 0.75rem;
+}
+
+.ec-music-play {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border);
+  background: var(--bg-hover);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 12px;
+}
+
+.ec-music-play:hover {
+  border-color: var(--text);
+}
+
+.ec-music-cover {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 6px;
+  background: var(--border) center/cover no-repeat;
+}
+
+.ec-music-icon {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.ec-music-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.ec-music-title {
+  font-size: 0.92rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ec-music-artist {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .card-close {
   width: 32px;
   height: 32px;
@@ -561,8 +629,255 @@ html, body {
   border-top: 1px solid var(--border);
 }
 
+/* ── Global music player ───────────────────────────────────── */
+
+.global-player {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1200;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  padding: 0.75rem 1rem 0.85rem;
+}
+
+.gp-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.gp-now {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.gp-cover {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 6px;
+  background: var(--border) center/cover no-repeat;
+}
+
+.gp-cover.has-cover {
+  background-color: transparent;
+}
+
+.gp-meta {
+  min-width: 0;
+  flex: 1;
+}
+
+.gp-title {
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gp-sub {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gp-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.gp-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  max-width: 900px;
+  margin: 0.55rem auto 0;
+}
+
+.gp-progress-disabled {
+  opacity: 0.55;
+}
+
+.gp-time {
+  flex-shrink: 0;
+  min-width: 2.25rem;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.gp-time:last-child {
+  text-align: right;
+}
+
+.gp-seek {
+  flex: 1;
+  min-width: 0;
+  height: 0.3rem;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.gp-seek:disabled {
+  cursor: not-allowed;
+}
+
+.gp-seek::-webkit-slider-runnable-track {
+  height: 0.3rem;
+  background: var(--border);
+  border-radius: 999px;
+}
+
+.gp-seek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-top: -0.22rem;
+  border-radius: 50%;
+  background: var(--text);
+  border: none;
+}
+
+.gp-seek::-moz-range-track {
+  height: 0.3rem;
+  background: var(--border);
+  border-radius: 999px;
+  border: none;
+}
+
+.gp-seek::-moz-range-thumb {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: var(--text);
+  border: none;
+}
+
+.gp-btn {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.75rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gp-btn:hover {
+  border-color: var(--text);
+}
+
+.gp-btn-primary {
+  width: 2.35rem;
+  height: 2.35rem;
+  border-color: var(--text);
+}
+
+/* Vendor iframe is audio-only; keep it out of the visual UI */
+.gp-embed-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.gp-playlist {
+  list-style: none;
+  max-width: 900px;
+  margin: 0.65rem auto 0;
+  padding: 0.35rem 0 0;
+  max-height: 14rem;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+}
+
+.gp-playlist-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.25rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+.gp-playlist-item:hover {
+  color: var(--text);
+}
+
+.gp-playlist-active {
+  color: var(--text);
+}
+
+.gp-playlist-active .gp-playlist-title {
+  font-weight: 500;
+}
+
+.gp-playlist-cover {
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 4px;
+  background: var(--border) center/cover no-repeat;
+}
+
+.gp-playlist-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.gp-playlist-title {
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gp-playlist-artist {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body:has(.global-player:not([hidden])) {
+  padding-bottom: 5.5rem;
+}
+
 @media (max-width: 640px) {
   .home-title { font-size: 2rem; }
   .card { max-height: 90vh; }
   .archive-grid { grid-template-columns: 1fr; }
+  .gp-bar { flex-wrap: wrap; }
+  .gp-controls { width: 100%; justify-content: flex-end; }
 }
