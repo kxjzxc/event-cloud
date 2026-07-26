@@ -108,6 +108,7 @@ export class Builder {
     // 4. Process images
     log('Processing images...');
     const assetsDir = path.join(this.config.outputPath, 'assets');
+    let skippedVideos = 0;
 
     for (const event of events) {
       // Map from original asset path → processed site-relative paths
@@ -134,8 +135,10 @@ export class Builder {
           // Track mapping for contentHtml rewriting
           origToThumb.set(asset.originalPath, asset.thumbnailPath);
           origToPreview.set(asset.originalPath, asset.previewPath);
+        } else if (asset.type === 'video') {
+          skippedVideos += 1;
+          log(`  ⚠ Video skipped (unsupported): ${path.basename(asset.originalPath)}`);
         }
-        // Videos are intentionally unsupported for now — skip.
       }
 
       // Rewrite inline image paths in contentHtml:
@@ -161,6 +164,9 @@ export class Builder {
     }
 
     log('Image processing complete.');
+    if (skippedVideos > 0) {
+      log(`  Skipped ${skippedVideos} video asset(s) (unsupported for now).`);
+    }
 
     // 4. Build index
     const index: EventIndexEntry[] = events.map((e) => ({

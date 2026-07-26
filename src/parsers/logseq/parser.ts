@@ -457,14 +457,21 @@ export class LogseqParser implements IParser {
   private extractMedia(text: string, graphPath: string): MediaAsset[] {
     const media: MediaAsset[] = [];
 
-    // Markdown images: ![alt](path) — skip video paths (unsupported for now)
+    // Markdown images / videos: ![alt](path)
     const imgRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
     let m: RegExpExecArray | null;
     while ((m = imgRegex.exec(text)) !== null) {
       const imgPath = m[2];
       const ext = path.extname(imgPath).toLowerCase();
-      if (LogseqParser.VIDEO_EXTS.includes(ext)) continue;
       const resolved = this.resolveAssetPath(imgPath, graphPath);
+      if (LogseqParser.VIDEO_EXTS.includes(ext)) {
+        media.push({
+          originalPath: resolved,
+          type: 'video',
+          alt: m[1] || undefined,
+        });
+        continue;
+      }
       media.push({
         originalPath: resolved,
         type: 'image',
@@ -472,14 +479,15 @@ export class LogseqParser implements IParser {
       });
     }
 
-    // Logseq image embeds only: ![[photo.jpg]] — videos are ignored for now
-    const embedRegex = /!\[\[([^\]]+\.(?:jpg|jpeg|png|gif|webp))\]\]/gi;
+    // Logseq embeds: images kept; videos recorded so Builder can warn & skip
+    const embedRegex = /!\[\[([^\]]+\.(?:jpg|jpeg|png|gif|webp|mp4|mov|webm))\]\]/gi;
     while ((m = embedRegex.exec(text)) !== null) {
       const imgPath = m[1];
       const resolved = this.resolveAssetPath(imgPath, graphPath);
+      const ext = path.extname(imgPath).toLowerCase();
       media.push({
         originalPath: resolved,
-        type: 'image',
+        type: LogseqParser.VIDEO_EXTS.includes(ext) ? 'video' : 'image',
         alt: undefined,
       });
     }
@@ -657,6 +665,11 @@ export class LogseqParser implements IParser {
     // Music embeds → play-button markers (same tracks[] as music::).
     // Other iframes are lifted out of list context so marked treats them as HTML blocks.
     const iframeBlocks: string[] = [];
+    // Indexes already emitted as play buttons (usually from music:: in blocksToPageMarkdown)
+    const markedMusicIndexes = new Set<number>();
+    for (const m of processed.matchAll(/data-track-index="(\d+)"/g)) {
+      markedMusicIndexes.add(parseInt(m[1], 10));
+    }
     const replaceMusicIframe = (iframe: string): string => {
       const srcMatch = iframe.match(/\bsrc=["']([^"']+)["']/i);
       if (!srcMatch) return '';
@@ -664,8 +677,9 @@ export class LogseqParser implements IParser {
       if (!track) return '';
       const idx = tracks.findIndex((t) => t.platform === track.platform && t.id === track.id);
       if (idx < 0) return '';
-      // Already replaced via music:: — don't duplicate the play button
-      if (processed.includes(`data-track-index="${idx}"`)) return '';
+      // Already emitted via music:: (or a prior iframe of the same track)
+      if (markedMusicIndexes.has(idx)) return '';
+      markedMusicIndexes.add(idx);
       return `\n\n${this.musicPlayMarker(idx)}\n\n`;
     };
 

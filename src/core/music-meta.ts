@@ -128,7 +128,11 @@ async function mapPool<T>(
   );
 }
 
-async function fetchText(url: string, extraHeaders: string[] = []): Promise<string | null> {
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchTextOnce(url: string, extraHeaders: string[] = []): Promise<string | null> {
   // Prefer curl so HTTPS_PROXY / http_proxy are honored (Node fetch often ignores them).
   try {
     const args = [
@@ -161,6 +165,17 @@ async function fetchText(url: string, extraHeaders: string[] = []): Promise<stri
       return null;
     }
   }
+}
+
+/** Fetch with exponential backoff (3 attempts: 0 / 400 / 1200 ms). */
+async function fetchText(url: string, extraHeaders: string[] = []): Promise<string | null> {
+  const delays = [0, 400, 1200];
+  for (let i = 0; i < delays.length; i++) {
+    if (delays[i] > 0) await sleep(delays[i]);
+    const text = await fetchTextOnce(url, extraHeaders);
+    if (text != null && text !== '') return text;
+  }
+  return null;
 }
 
 async function fetchJson(url: string, extraHeaders: string[] = []): Promise<any | null> {
@@ -205,38 +220,70 @@ async function enrichNetEase(track: MusicTrack): Promise<void> {
   }
 }
 
+/**
+ * Spotify oEmbed title is often `"Song — Artist"` (em dash / en dash / hyphen).
+ * Prefer splitting so title and artist stay consistent with embed-page parsing.
+ */
+function applySpotifyOembedTitle(track: MusicTrack, rawTitle: string): void {
+  const title = rawTitle.trim();
+  if (!title) return;
+
+  const parts = title.split(/\s+[—–-]\s+/);
+  if (parts.length >= 2) {
+    const song = parts[0].trim();
+    const artist = parts.slice(1).join(' — ').trim();
+    if (song && (isGenericTitle(track.title) || !track.title)) {
+      track.title = song;
+    }
+    if (artist && !track.artist) {
+      track.artist = artist;
+    }
+    return;
+  }
+
+  if (isGenericTitle(track.title) || !track.title) {
+    track.title = title;
+  }
+}
+
 async function enrichSpotify(track: MusicTrack): Promise<void> {
   const pageUrl = `https://open.spotify.com/track/${track.id}`;
   const oembed = await fetchJson(
     `https://open.spotify.com/oembed?url=${encodeURIComponent(pageUrl)}`,
   );
   if (oembed) {
-    if (oembed.title && (isGenericTitle(track.title) || !track.title)) {
-      track.title = String(oembed.title);
+    if (oembed.title) {
+      applySpotifyOembedTitle(track, String(oembed.title));
     }
     if (oembed.thumbnail_url && !track.coverUrl) {
       track.coverUrl = String(oembed.thumbnail_url);
     }
   }
 
-  // No stable public audio URL for Spotify → player uses embed (no live progress).
-  if (track.artist && track.durationMs) return;
-
+  // Embed page can refine artist / duration. Prefer HTML artist when present
+  // (more accurate than oEmbed's combined title), keep oEmbed title as song name.
   const html = await fetchText(`https://open.spotify.com/embed/track/${track.id}`);
   if (!html) return;
 
-  if (!track.artist) {
-    const artists: string[] = [];
-    const block = html.match(/"artists"\s*:\s*\[([^\]]*)\]/);
-    if (block) {
-      const nameRe = /"name"\s*:\s*"((?:\\.|[^"\\])*)"/g;
-      let m: RegExpExecArray | null;
-      while ((m = nameRe.exec(block[1])) !== null) {
-        artists.push(m[1].replace(/\\"/g, '"'));
-      }
+  const artists: string[] = [];
+  const block = html.match(/"artists"\s*:\s*\[([^\]]*)\]/);
+  if (block) {
+    const nameRe = /"name"\s*:\s*"((?:\\.|[^"\\])*)"/g;
+    let m: RegExpExecArray | null;
+    while ((m = nameRe.exec(block[1])) !== null) {
+      artists.push(m[1].replace(/\\"/g, '"'));
     }
-    if (artists.length) {
-      track.artist = artists.join(' / ');
+  }
+  if (artists.length) {
+    // HTML artists win over oEmbed-split artist when available.
+    track.artist = artists.join(' / ');
+  }
+
+  // Prefer entity name from embed JSON when title is still generic.
+  if (isGenericTitle(track.title) || !track.title) {
+    const nameMatch = html.match(/"entity"\s*:\s*\{[^}]*"name"\s*:\s*"((?:\\.|[^"\\])*)"/);
+    if (nameMatch) {
+      track.title = nameMatch[1].replace(/\\"/g, '"');
     }
   }
 
