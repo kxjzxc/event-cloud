@@ -1,4 +1,4 @@
-import type { IRenderer, TMEvent, EventIndexEntry, RenderContext, MediaAsset } from '../../types';
+import type { IRenderer, TMEvent, EventIndexEntry, RenderContext } from '../../types';
 import { ThemeLoader, renderTemplate } from '../../theme/theme-loader';
 
 export class DefaultRenderer implements IRenderer {
@@ -133,25 +133,8 @@ export class DefaultRenderer implements IRenderer {
           </div>`
         : '';
 
-    // Images are now rendered inline in contentHtml (preserving original order).
-    // Videos are still appended at the end since they use <video> tags which
-    // the parser doesn't currently emit inline.
-    const videoMedia = event.media.filter((m) => m.type === 'video' && m.thumbnailPath);
-
-    const videoHtml = videoMedia
-      .map(
-        (m: MediaAsset) =>
-          `<video controls preload="metadata" poster="">
-             <source src="../${m.thumbnailPath}" type="video/mp4">
-           </video>`,
-      )
-      .join('');
-
-    const videoSection = videoHtml
-      ? `<div class="event-media event-videos">${videoHtml}</div>`
-      : '';
-
-    const contentWithMedia = resolvedContent + videoSection;
+    // Images are rendered inline in contentHtml (preserving original order).
+    // Video embeds are not supported yet and are stripped at parse time.
 
     const siblings = siblingsHtml + backlinksHtml + relatedHtml;
 
@@ -159,8 +142,8 @@ export class DefaultRenderer implements IRenderer {
       title: `${event.title} — Event Cloud`,
       date: event.date,
       eventId: event.id,
-      content: contentWithMedia,
-      media: videoSection,
+      content: resolvedContent,
+      media: '',
       tags: event.tags,
       tagsHtml,
       links: linksHtml,

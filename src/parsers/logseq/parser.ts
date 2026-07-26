@@ -1,9 +1,9 @@
 /**
  * Logseq Parser — reads a Logseq graph and extracts Events.
  *
- * Logseq stores notes as Markdown files in journals/ and pages/.
- * Each file is a tree of blocks (list items). A block with the property
- * `type:: event` becomes a TMEvent.
+ * Event source: each `pages/*.md` file becomes one Event
+ * (skipping Logseq internals like contents / whiteboards).
+ * Journals are NOT Event sources — they only supply dates via [[page]] links.
  */
 
 import * as fs from 'fs';
@@ -13,7 +13,7 @@ marked.setOptions({
   breaks: true,
   gfm: true,
 });
-import type { IParser, TMEvent, MediaAsset } from '../../types';
+import type { IParser, TMEvent, MediaAsset, MusicTrack } from '../../types';
 
 // ─── Internal block representation ────────────────────────────
 
@@ -55,34 +55,8 @@ export class LogseqParser implements IParser {
       if (event) allEvents.push(event);
     }
 
-    const journalFiles = [...new Set(this.findMarkdownFiles(journalsDir))];
-    for (const file of journalFiles) {
-      const filename = path.basename(file, '.md');
-      const journalDate = this.extractDateFromFilename(filename);
-      if (!journalDate) continue;
-
-      const relPath = path.relative(graphPath, file);
-      const content = fs.readFileSync(file, 'utf-8');
-      const blocks = this.parseBlocks(content);
-
-      for (const block of blocks) {
-        // Journal blocks that are only [[page]] references are day indexes,
-        // not standalone events. Skip even when multiple links are concatenated
-        // into one block (Logseq soft-wrap without per-line "- ").
-        if (this.isWikiLinkOnlyContent(block.content)) {
-          continue;
-        }
-
-        const blockTitle = this.stripMarkdown(block.content).trim();
-        const pageFilePath = path.join(pagesDir, blockTitle + '.md');
-        if (fs.existsSync(pageFilePath)) {
-          continue;
-        }
-
-        const event = this.blockToEvent(block, journalDate, relPath, graphPath);
-        if (event) allEvents.push(event);
-      }
-    }
+    // Journals are date indexes only (via buildPageDateMap above).
+    // Free-text journal blocks — with or without [[links]] — never become Events.
 
     return allEvents;
   }
@@ -145,8 +119,9 @@ export class LogseqParser implements IParser {
     const tags = this.extractAllTags(rawContent, pageProperties);
     const links = this.extractLinks(rawContent);
     const media = this.extractMedia(rawContent, graphPath);
-    const contentRaw = this.blocksToPageMarkdown(blocks);
-    const contentHtml = this.renderMarkdown(contentRaw);
+    const tracks = this.extractTracks(rawContent);
+    const contentRaw = this.blocksToPageMarkdown(blocks, tracks);
+    const contentHtml = this.renderMarkdown(contentRaw, tracks);
 
     return {
       id,
@@ -158,6 +133,7 @@ export class LogseqParser implements IParser {
       tags,
       links,
       media,
+      tracks,
       sourceFile,
       siblingIds: [],
       backlinkIds: [],
@@ -176,15 +152,29 @@ export class LogseqParser implements IParser {
    * line, so marked produces proper <p> spacing. Nested child blocks are
    * kept as markdown lists (they are genuine sub-items). Inline images and
    * other inline elements keep their original position within each block.
+   *
+   * `music::` property blocks are replaced in-place with play-button markers
+   * (never rendered as markdown links). Other `key:: value` properties are dropped.
    */
-  private blocksToPageMarkdown(blocks: LogseqBlock[]): string {
-    // Filter out pure-property blocks (type::, date::, tags::, etc.)
-    const contentBlocks = blocks.filter(
-      (b) => !this.isProperty(b.content.trim()) && b.content.trim() !== '',
-    );
-
+  private blocksToPageMarkdown(blocks: LogseqBlock[], tracks: MusicTrack[] = []): string {
     const paragraphs: string[] = [];
-    for (const block of contentBlocks) {
+    for (const block of blocks) {
+      const trimmed = block.content.trim();
+      if (!trimmed) continue;
+
+      if (this.isMusicProperty(trimmed)) {
+        const track = this.trackFromMusicProperty(trimmed);
+        const idx = track
+          ? tracks.findIndex((t) => t.platform === track.platform && t.id === track.id)
+          : -1;
+        if (idx >= 0) {
+          paragraphs.push(this.musicPlayMarker(idx));
+        }
+        continue;
+      }
+
+      if (this.isProperty(trimmed)) continue;
+
       let md = block.content;
       if (block.children.length > 0) {
         const childMd = this.childrenToMarkdown(block.children);
@@ -195,6 +185,30 @@ export class LogseqParser implements IParser {
       paragraphs.push(md);
     }
     return paragraphs.join('\n\n');
+  }
+
+  private isMusicProperty(line: string): boolean {
+    return /^music::\s*/i.test(line.trim());
+  }
+
+  private trackFromMusicProperty(line: string): MusicTrack | null {
+    const m = line.trim().match(/^music::\s*(.+)$/i);
+    if (!m) return null;
+    const value = m[1].trim();
+    const mdLink = value.match(/^\[([^\]]*)\]\(([^)]+)\)/);
+    if (mdLink) {
+      return this.parseMusicUrl(mdLink[2].trim(), mdLink[1].trim() || undefined);
+    }
+    const bare = value.replace(/^<|>$/g, '').trim();
+    if (/^https?:/i.test(bare) || bare.startsWith('//')) {
+      return this.parseMusicUrl(bare);
+    }
+    return null;
+  }
+
+  private musicPlayMarker(index: number): string {
+    // Raw HTML block — marked passes it through.
+    return `<button type="button" class="ec-music-play" data-track-index="${index}"></button>`;
   }
 
   /**
@@ -412,49 +426,7 @@ export class LogseqParser implements IParser {
     return { key: m[1], value: m[2].trim() };
   }
 
-  // ─── Block → Event ─────────────────────────────────────────
-
-  private blockToEvent(
-    block: LogseqBlock,
-    date: string,
-    sourceFile: string,
-    graphPath: string,
-  ): TMEvent | null {
-    const title = this.stripMarkdown(block.content).trim();
-    if (!title) return null;
-
-    const id = this.makeEventId(date, title);
-
-    // Extract tags from properties and content
-    const tags = this.extractTags(block);
-
-    // Extract [[links]]
-    const links = this.extractLinks(block.rawText);
-
-    // Extract media (images)
-    const media = this.extractMedia(block.rawText, graphPath);
-
-    // Render child content as HTML
-    const childMarkdown = this.childrenToMarkdown(block.children);
-    const contentHtml = this.renderMarkdown(childMarkdown);
-    const contentRaw = childMarkdown || block.content;
-
-    return {
-      id,
-      title,
-      date,
-      hasValidDate: true,
-      contentHtml,
-      contentRaw,
-      tags,
-      links,
-      media,
-      sourceFile,
-      siblingIds: [],
-      backlinkIds: [],
-      relatedIds: [],
-    };
-  }
+  // ─── Helpers (page-level) ──────────────────────────────────
 
   private makeEventId(date: string, title: string): string {
     const slug = title
@@ -463,56 +435,6 @@ export class LogseqParser implements IParser {
       .replace(/^-+|-+$/g, '')
       .slice(0, 60);
     return `${date}-${slug}`;
-  }
-
-  private stripMarkdown(text: string): string {
-    return text
-      .replace(/\[\[([^\]]+)\]\]/g, '$1')
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-      .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
-      .replace(/[#*`~]/g, '')
-      .trim();
-  }
-
-  /**
-   * True when block content is only one or more [[wiki links]] (plus whitespace).
-   * Used to skip journal "index" blocks that merely point at page events.
-   */
-  private isWikiLinkOnlyContent(content: string): boolean {
-    const text = content.trim();
-    if (!text) return false;
-
-    const links = this.extractLinks(text);
-    if (links.length === 0) return false;
-
-    // Remove wiki links; if nothing meaningful remains, this is an index block.
-    const remainder = text
-      .replace(/(?<!!)\[\[([^\]]+)\]\]/g, '')
-      .replace(/\s+/g, '')
-      .trim();
-    return remainder.length === 0;
-  }
-
-  private extractTags(block: LogseqBlock): string[] {
-    const tags = new Set<string>();
-
-    // From tags:: property
-    const tagsProp = block.properties['tags'];
-    if (tagsProp) {
-      for (const tag of tagsProp.split(/[\s,]+/)) {
-        const clean = tag.replace(/^#/, '').trim();
-        if (clean) tags.add(clean);
-      }
-    }
-
-    // From #hashtag in content
-    const hashtagRegex = /(?:^|\s)#([\w\u4e00-\u9fff]+)/g;
-    let m: RegExpExecArray | null;
-    while ((m = hashtagRegex.exec(block.rawText)) !== null) {
-      tags.add(m[1]);
-    }
-
-    return Array.from(tags);
   }
 
   private extractLinks(text: string): string[] {
@@ -530,15 +452,26 @@ export class LogseqParser implements IParser {
     return Array.from(links);
   }
 
+  private static readonly VIDEO_EXTS = ['.mp4', '.mov', '.webm'];
+
   private extractMedia(text: string, graphPath: string): MediaAsset[] {
     const media: MediaAsset[] = [];
 
-    // Markdown images: ![alt](path)
+    // Markdown images / videos: ![alt](path)
     const imgRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
     let m: RegExpExecArray | null;
     while ((m = imgRegex.exec(text)) !== null) {
       const imgPath = m[2];
+      const ext = path.extname(imgPath).toLowerCase();
       const resolved = this.resolveAssetPath(imgPath, graphPath);
+      if (LogseqParser.VIDEO_EXTS.includes(ext)) {
+        media.push({
+          originalPath: resolved,
+          type: 'video',
+          alt: m[1] || undefined,
+        });
+        continue;
+      }
       media.push({
         originalPath: resolved,
         type: 'image',
@@ -546,21 +479,146 @@ export class LogseqParser implements IParser {
       });
     }
 
-    // Logseq embed: [[../assets/image.jpg]]
-    const embedRegex = /!\[\[([^\]]+\.(?:jpg|jpeg|png|gif|webp|mp4|mov))\]\]/gi;
+    // Logseq embeds: images kept; videos recorded so Builder can warn & skip
+    const embedRegex = /!\[\[([^\]]+\.(?:jpg|jpeg|png|gif|webp|mp4|mov|webm))\]\]/gi;
     while ((m = embedRegex.exec(text)) !== null) {
       const imgPath = m[1];
       const resolved = this.resolveAssetPath(imgPath, graphPath);
       const ext = path.extname(imgPath).toLowerCase();
-      const isVideo = ['.mp4', '.mov', '.webm'].includes(ext);
       media.push({
         originalPath: resolved,
-        type: isVideo ? 'video' : 'image',
+        type: LogseqParser.VIDEO_EXTS.includes(ext) ? 'video' : 'image',
         alt: undefined,
       });
     }
 
     return media;
+  }
+
+  /**
+   * Build playlist from preferred `music::` properties, then legacy iframes.
+   * Order: all music:: lines (document order), then iframes not already added.
+   */
+  private extractTracks(content: string): MusicTrack[] {
+    const tracks: MusicTrack[] = [];
+    const seen = new Set<string>();
+
+    const add = (track: MusicTrack | null) => {
+      if (!track) return;
+      const key = `${track.platform}:${track.id}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      tracks.push(track);
+    };
+
+    // Preferred: music:: [Title](url)  or  music:: https://...
+    // Logseq lines are usually "- music:: ..."; bare "music::" also appears as page props.
+    const musicPropRegex = /^[ \t]*(?:-\s+)?music::\s*(.+)$/gim;
+    let propMatch: RegExpExecArray | null;
+    while ((propMatch = musicPropRegex.exec(content)) !== null) {
+      const value = propMatch[1].trim();
+      if (!value) continue;
+
+      const mdLink = value.match(/^\[([^\]]*)\]\(([^)]+)\)/);
+      if (mdLink) {
+        add(this.parseMusicUrl(mdLink[2].trim(), mdLink[1].trim() || undefined));
+        continue;
+      }
+
+      // Bare URL (optional angle brackets)
+      const bare = value.replace(/^<|>$/g, '').trim();
+      if (/^https?:/i.test(bare) || bare.startsWith('//')) {
+        add(this.parseMusicUrl(bare));
+      }
+    }
+
+    // Legacy: iframe embeds still work
+    const iframeRegex = /<iframe\b[^>]*>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = iframeRegex.exec(content)) !== null) {
+      const srcMatch = m[0].match(/\bsrc=["']([^"']+)["']/i);
+      if (!srcMatch) continue;
+      add(this.parseMusicUrl(srcMatch[1]));
+    }
+
+    return tracks;
+  }
+
+  /**
+   * Normalize NetEase / Spotify page URLs and embed URLs into a MusicTrack.
+   */
+  private parseMusicUrl(rawSrc: string, title?: string): MusicTrack | null {
+    let src = rawSrc.trim();
+    // Fix soft-wrap / Logseq quirks: "https: //host" → "https://host"
+    src = src.replace(/^(https?:)\s+/i, '$1');
+    src = src.replace(/\s+/g, '');
+    if (src.startsWith('//')) src = 'https:' + src;
+
+    let url: URL;
+    try {
+      url = new URL(src);
+    } catch {
+      return null;
+    }
+
+    const host = url.hostname.replace(/^www\./, '');
+
+    // NetEase: outchain player, /song?id=, or /#/song?id=
+    if (host === 'music.163.com' || host.endsWith('.music.163.com')) {
+      let id = url.searchParams.get('id');
+      if (!id && url.hash) {
+        const hashId = url.hash.match(/[?&]id=(\d+)/);
+        if (hashId) id = hashId[1];
+      }
+      if (!id) {
+        const pathId = url.pathname.match(/\/song\/(\d+)/);
+        if (pathId) id = pathId[1];
+      }
+      if (!id) return null;
+
+      const type = url.searchParams.get('type') || '2';
+      const height = url.searchParams.get('height') || '66';
+      return {
+        platform: 'netease',
+        id,
+        title: title || `网易云 · ${id}`,
+        embedUrl: `https://music.163.com/outchain/player?type=${type}&id=${id}&auto=1&height=${height}`,
+      };
+    }
+
+    // Spotify: /track/ID, /album/ID, or /embed/track/ID
+    if (host === 'open.spotify.com') {
+      const parts = url.pathname.split('/').filter(Boolean);
+      let kind: string | undefined;
+      let id: string | undefined;
+
+      const embedIdx = parts.indexOf('embed');
+      if (embedIdx >= 0 && parts.length >= embedIdx + 3) {
+        kind = parts[embedIdx + 1];
+        id = parts[embedIdx + 2];
+      } else if (parts.length >= 2) {
+        kind = parts[0];
+        id = parts[1];
+      }
+
+      if (!kind || !id) return null;
+      id = id.split('?')[0];
+
+      const kindLabel =
+        kind === 'track' ? 'Spotify 单曲' : kind === 'album' ? 'Spotify 专辑' : `Spotify · ${kind}`;
+      return {
+        platform: 'spotify',
+        id,
+        title: title || `${kindLabel} · ${id.slice(0, 8)}`,
+        embedUrl: `https://open.spotify.com/embed/${kind}/${id}?utm_source=generator`,
+      };
+    }
+
+    return null;
+  }
+
+  private isMusicIframe(iframeHtml: string): boolean {
+    return /music\.163\.com|open\.spotify\.com/i.test(iframeHtml);
   }
 
   private resolveAssetPath(assetRef: string, graphPath: string): string {
@@ -598,29 +656,61 @@ export class LogseqParser implements IParser {
     return lines.join('\n');
   }
 
-  private renderMarkdown(markdown: string): string {
+  private renderMarkdown(markdown: string, tracks: MusicTrack[] = []): string {
     if (!markdown) return '';
 
     let processed = markdown;
 
     // ── Step 1: Extract iframes BEFORE markdown parsing ────────────
-    // Logseq stores iframes as list items: "- <iframe ...>...</iframe>"
-    // We lift them out of the list context so marked treats them as HTML blocks.
+    // Music embeds → play-button markers (same tracks[] as music::).
+    // Other iframes are lifted out of list context so marked treats them as HTML blocks.
     const iframeBlocks: string[] = [];
+    // Indexes already emitted as play buttons (usually from music:: in blocksToPageMarkdown)
+    const markedMusicIndexes = new Set<number>();
+    for (const m of processed.matchAll(/data-track-index="(\d+)"/g)) {
+      markedMusicIndexes.add(parseInt(m[1], 10));
+    }
+    const replaceMusicIframe = (iframe: string): string => {
+      const srcMatch = iframe.match(/\bsrc=["']([^"']+)["']/i);
+      if (!srcMatch) return '';
+      const track = this.parseMusicUrl(srcMatch[1]);
+      if (!track) return '';
+      const idx = tracks.findIndex((t) => t.platform === track.platform && t.id === track.id);
+      if (idx < 0) return '';
+      // Already emitted via music:: (or a prior iframe of the same track)
+      if (markedMusicIndexes.has(idx)) return '';
+      markedMusicIndexes.add(idx);
+      return `\n\n${this.musicPlayMarker(idx)}\n\n`;
+    };
+
     processed = processed.replace(
       /^[ \t]*-[ \t]+(<iframe[\s\S]*?<\/iframe>)/gim,
       (_, iframe: string) => {
+        if (this.isMusicIframe(iframe)) return replaceMusicIframe(iframe);
         const idx = iframeBlocks.length;
         iframeBlocks.push(iframe.trim());
-        // Use a fenced marker that marked will pass through as an HTML block
         return `\n\n<div class="ec-embed" data-idx="${idx}"></div>\n\n`;
       },
     );
+    processed = processed.replace(/<iframe[\s\S]*?<\/iframe>/gi, (iframe) => {
+      if (this.isMusicIframe(iframe)) return replaceMusicIframe(iframe);
+      return iframe;
+    });
 
     // ── Step 2: Replace inline images with placeholder <img> tags ──
     // Images keep their original position in the text.
     // The "data-ec-orig" attribute is used by the Builder to rewrite paths
     // to processed WebP assets after image processing is complete.
+    // Video embeds (![[*.mp4]]) are stripped — video is not supported yet.
+    processed = processed.replace(
+      /!\[\[([^\]]+\.(?:mp4|mov|webm))\]\]/gi,
+      '',
+    );
+    processed = processed.replace(
+      /!\[[^\]]*\]\([^)]+\.(?:mp4|mov|webm)\)/gi,
+      '',
+    );
+
     processed = processed.replace(
       /!\[([^\]]*)\]\(([^)]+)\)/g,
       (_, alt: string, src: string) => {
@@ -629,9 +719,9 @@ export class LogseqParser implements IParser {
       },
     );
 
-    // Logseq embed images: ![[path]] — same treatment
+    // Logseq embed images: ![[path]] — images only
     processed = processed.replace(
-      /!\[\[([^\]]+\.(?:jpg|jpeg|png|gif|webp|mp4|mov))\]\]/gi,
+      /!\[\[([^\]]+\.(?:jpg|jpeg|png|gif|webp))\]\]/gi,
       (_, src: string) => {
         const cleanSrc = src.trim();
         return `<img class="ec-img" src="${cleanSrc}" data-ec-orig="${cleanSrc}" alt="" loading="lazy">`;
