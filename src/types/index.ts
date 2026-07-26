@@ -21,31 +21,58 @@ export interface MediaAsset {
 }
 
 /**
+ * External music track from `music::` / legacy iframes (NetEase / Spotify).
+ * Card content shows a play button; audio plays via the site-wide player.
+ */
+export interface MusicTrack {
+  platform: 'netease' | 'spotify';
+  /** Platform-specific track id */
+  id: string;
+  /** Song title (enriched at build when possible) */
+  title: string;
+  /** Artist name(s), if known */
+  artist?: string;
+  /** Cover art URL, if known */
+  coverUrl?: string;
+  /** Duration in milliseconds, if known */
+  durationMs?: number;
+  /**
+   * Direct audio URL for HTML5 playback (enables progress / seek).
+   * When absent, player falls back to a hidden platform embed (no progress).
+   */
+  audioUrl?: string;
+  /** Platform embed URL used as fallback audio engine */
+  embedUrl: string;
+}
+
+/**
  * Event — the atomic unit of the Event Cloud.
  *
- * One Journal block with `type:: event` becomes one Event.
- * The same Journal can yield multiple Events.
+ * Each `pages/*.md` file becomes one Event.
+ * Journals are not Event sources; they only help resolve dates via [[page]] links.
  */
 export interface TMEvent {
   /** Stable unique id: `${date}-${slug}` */
   id: string;
-  /** First line of the block, stripped of markdown */
+  /** First line / page title */
   title: string;
   /** Date string (can be ISO date or descriptive text) */
   date: string;
   /** Whether the date is a valid ISO date (can be used for date lookup) */
   hasValidDate: boolean;
-  /** Child-block content rendered as HTML */
+  /** Page content rendered as HTML */
   contentHtml: string;
-  /** Raw block content (markdown) for search / archive */
+  /** Raw page content (markdown) for search / archive */
   contentRaw: string;
   tags: string[];
   /** Page names referenced via [[double-bracket]] links */
   links: string[];
   media: MediaAsset[];
-  /** Path to the source journal file (relative to graph root) */
+  /** Music embeds from the page, in document order (card playlist) */
+  tracks: MusicTrack[];
+  /** Path to the source page file (relative to graph root) */
   sourceFile: string;
-  /** Other Event ids from the same journal day */
+  /** Other Event ids from the same date */
   siblingIds: string[];
   /** Event IDs that link TO this event (via [[this event's title]]) */
   backlinkIds: string[];

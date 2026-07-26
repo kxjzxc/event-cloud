@@ -41,6 +41,445 @@
     });
   }
 
+  // ── Global music player (survives card switches) ───────────────
+  var musicPlayer = {
+    playlist: [],
+    index: 0,
+    sourceTitle: '',
+    playing: false,
+    /** 'audio' | 'embed' | null */
+    engine: null,
+    seeking: false,
+  };
+
+  function platformLabel(track) {
+    if (!track) return '';
+    if (track.platform === 'netease') return '网易云';
+    if (track.platform === 'spotify') return 'Spotify';
+    return track.platform || '';
+  }
+
+  function trackDisplayTitle(track, event) {
+    if (!track) return '未知曲目';
+    var label = track.title;
+    if (!label || /^(网易云|Spotify)/i.test(label)) {
+      if (event && event.title) return event.title;
+      return platformLabel(track) || '未知曲目';
+    }
+    return label;
+  }
+
+  function formatTime(seconds) {
+    if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
+    var s = Math.floor(seconds);
+    var m = Math.floor(s / 60);
+    var r = s % 60;
+    return m + ':' + (r < 10 ? '0' : '') + r;
+  }
+
+  function ensureGlobalPlayer() {
+    if (document.getElementById('global-player')) return;
+
+    var root = document.createElement('div');
+    root.id = 'global-player';
+    root.className = 'global-player';
+    root.hidden = true;
+    root.innerHTML =
+      '<div class="gp-bar">' +
+        '<div class="gp-now">' +
+          '<div class="gp-cover" id="gp-cover" aria-hidden="true"></div>' +
+          '<div class="gp-meta">' +
+            '<div class="gp-title" id="gp-title">未在播放</div>' +
+            '<div class="gp-sub" id="gp-sub"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="gp-controls">' +
+          '<button type="button" class="gp-btn" id="gp-prev" title="上一首" aria-label="上一首">‹</button>' +
+          '<button type="button" class="gp-btn gp-btn-primary" id="gp-toggle" title="播放/暂停" aria-label="播放">▶</button>' +
+          '<button type="button" class="gp-btn" id="gp-next" title="下一首" aria-label="下一首">›</button>' +
+          '<button type="button" class="gp-btn" id="gp-list-btn" title="播放列表" aria-label="播放列表">☰</button>' +
+          '<button type="button" class="gp-btn" id="gp-stop" title="停止" aria-label="停止">■</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="gp-progress" id="gp-progress">' +
+        '<span class="gp-time" id="gp-time-cur">0:00</span>' +
+        '<input type="range" class="gp-seek" id="gp-seek" min="0" max="0" step="0.1" value="0" disabled aria-label="播放进度">' +
+        '<span class="gp-time" id="gp-time-dur">0:00</span>' +
+      '</div>' +
+      '<div class="gp-embed gp-embed-hidden" id="gp-embed" aria-hidden="true"></div>' +
+      '<ul class="gp-playlist" id="gp-playlist" hidden></ul>';
+    document.body.appendChild(root);
+
+    document.getElementById('gp-prev').addEventListener('click', function() {
+      if (!musicPlayer.playlist.length) return;
+      var i = musicPlayer.index - 1;
+      if (i < 0) i = musicPlayer.playlist.length - 1;
+      playAt(i);
+    });
+    document.getElementById('gp-next').addEventListener('click', function() {
+      if (!musicPlayer.playlist.length) return;
+      var i = (musicPlayer.index + 1) % musicPlayer.playlist.length;
+      playAt(i);
+    });
+    document.getElementById('gp-toggle').addEventListener('click', function() {
+      if (!musicPlayer.playlist.length) return;
+      if (musicPlayer.playing) pauseMusic();
+      else resumeOrPlay();
+    });
+    document.getElementById('gp-stop').addEventListener('click', stopMusic);
+    document.getElementById('gp-list-btn').addEventListener('click', function() {
+      var list = document.getElementById('gp-playlist');
+      if (!list) return;
+      list.hidden = !list.hidden;
+    });
+
+    var seek = document.getElementById('gp-seek');
+    seek.addEventListener('pointerdown', function() {
+      musicPlayer.seeking = true;
+    });
+    seek.addEventListener('pointerup', function() {
+      musicPlayer.seeking = false;
+      seekTo(parseFloat(seek.value));
+    });
+    seek.addEventListener('change', function() {
+      musicPlayer.seeking = false;
+      seekTo(parseFloat(seek.value));
+    });
+    seek.addEventListener('input', function() {
+      var cur = document.getElementById('gp-time-cur');
+      if (cur) cur.textContent = formatTime(parseFloat(seek.value) || 0);
+    });
+  }
+
+  function compactEmbedUrl(track) {
+    if (!track || !track.embedUrl) return '';
+    if (track.platform === 'spotify') {
+      var u = track.embedUrl.replace(/([?&])height=\d+/i, '');
+      return u + (u.indexOf('?') >= 0 ? '&' : '?') + 'theme=0';
+    }
+    if (track.platform === 'netease') {
+      return track.embedUrl.replace(/height=\d+/i, 'height=66');
+    }
+    return track.embedUrl;
+  }
+
+  function setCoverEl(el, coverUrl) {
+    if (!el) return;
+    if (coverUrl) {
+      el.style.backgroundImage = 'url("' + coverUrl.replace(/"/g, '\\"') + '")';
+      el.classList.add('has-cover');
+    } else {
+      el.style.backgroundImage = '';
+      el.classList.remove('has-cover');
+    }
+  }
+
+  function clearEngine() {
+    var wrap = document.getElementById('gp-embed');
+    if (wrap) wrap.innerHTML = '';
+    musicPlayer.engine = null;
+    resetProgressUi(0, 0, false);
+  }
+
+  function resetProgressUi(current, duration, seekable) {
+    var seek = document.getElementById('gp-seek');
+    var curEl = document.getElementById('gp-time-cur');
+    var durEl = document.getElementById('gp-time-dur');
+    var progress = document.getElementById('gp-progress');
+    if (curEl) curEl.textContent = formatTime(current);
+    if (durEl) durEl.textContent = formatTime(duration);
+    if (seek) {
+      seek.max = duration > 0 ? String(duration) : '0';
+      if (!musicPlayer.seeking) seek.value = String(current || 0);
+      seek.disabled = !seekable;
+    }
+    if (progress) {
+      progress.classList.toggle('gp-progress-disabled', !seekable);
+      progress.title = seekable ? '' : '当前曲目通过平台嵌入播放，无法读取进度';
+    }
+  }
+
+  function updateProgressFromAudio(audio) {
+    if (!audio || musicPlayer.seeking) return;
+    var duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+    var track = musicPlayer.playlist[musicPlayer.index];
+    if (!duration && track && track.durationMs) {
+      duration = track.durationMs / 1000;
+    }
+    resetProgressUi(audio.currentTime || 0, duration, true);
+  }
+
+  function seekTo(seconds) {
+    if (musicPlayer.engine !== 'audio') return;
+    var audio = document.getElementById('gp-audio');
+    if (!audio || !Number.isFinite(seconds)) return;
+    try {
+      audio.currentTime = seconds;
+    } catch (e) { /* ignore */ }
+    updateProgressFromAudio(audio);
+  }
+
+  function updatePlayerChrome() {
+    var root = document.getElementById('global-player');
+    var titleEl = document.getElementById('gp-title');
+    var subEl = document.getElementById('gp-sub');
+    var coverEl = document.getElementById('gp-cover');
+    var toggleBtn = document.getElementById('gp-toggle');
+    var listEl = document.getElementById('gp-playlist');
+    if (!root || !titleEl) return;
+
+    if (!musicPlayer.playlist.length) {
+      root.hidden = true;
+      titleEl.textContent = '未在播放';
+      if (subEl) subEl.textContent = '';
+      setCoverEl(coverEl, '');
+      resetProgressUi(0, 0, false);
+      return;
+    }
+
+    root.hidden = false;
+    var track = musicPlayer.playlist[musicPlayer.index];
+    titleEl.textContent = track.title || '未知曲目';
+    if (subEl) {
+      var bits = [];
+      if (track.artist) bits.push(track.artist);
+      bits.push(platformLabel(track));
+      bits.push((musicPlayer.index + 1) + '/' + musicPlayer.playlist.length);
+      if (musicPlayer.sourceTitle) bits.push(musicPlayer.sourceTitle);
+      subEl.textContent = bits.filter(Boolean).join(' · ');
+    }
+    setCoverEl(coverEl, track.coverUrl || '');
+    if (toggleBtn) toggleBtn.textContent = musicPlayer.playing ? '❚❚' : '▶';
+
+    if (musicPlayer.engine !== 'audio') {
+      var dur = track.durationMs ? track.durationMs / 1000 : 0;
+      resetProgressUi(0, dur, false);
+    }
+
+    if (listEl) {
+      listEl.innerHTML = musicPlayer.playlist.map(function(t, i) {
+        var active = i === musicPlayer.index ? ' gp-playlist-active' : '';
+        var cover = t.coverUrl
+          ? '<span class="gp-playlist-cover" style="background-image:url(\'' +
+            escapeHtml(t.coverUrl) + '\')"></span>'
+          : '<span class="gp-playlist-cover"></span>';
+        var artist = t.artist
+          ? '<span class="gp-playlist-artist">' + escapeHtml(t.artist) + '</span>'
+          : '';
+        return '<li class="gp-playlist-item' + active + '" data-index="' + i + '">' +
+          cover +
+          '<span class="gp-playlist-text">' +
+            '<span class="gp-playlist-title">' + escapeHtml(t.title || '未知曲目') + '</span>' +
+            artist +
+          '</span>' +
+          '</li>';
+      }).join('');
+      listEl.querySelectorAll('.gp-playlist-item').forEach(function(item) {
+        item.addEventListener('click', function() {
+          playAt(parseInt(item.getAttribute('data-index'), 10));
+        });
+      });
+    }
+  }
+
+  function mountEmbed(track) {
+    var wrap = document.getElementById('gp-embed');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    musicPlayer.engine = 'embed';
+    if (!track) return;
+
+    var iframe = document.createElement('iframe');
+    iframe.id = 'gp-frame';
+    iframe.setAttribute('frameborder', '0');
+    iframe.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture');
+    iframe.setAttribute('tabindex', '-1');
+    iframe.title = 'audio';
+    iframe.src = compactEmbedUrl(track);
+    wrap.appendChild(iframe);
+
+    var dur = track.durationMs ? track.durationMs / 1000 : 0;
+    resetProgressUi(0, dur, false);
+  }
+
+  function mountAudio(track) {
+    var wrap = document.getElementById('gp-embed');
+    if (!wrap || !track || !track.audioUrl) return false;
+    wrap.innerHTML = '';
+
+    var audio = document.createElement('audio');
+    audio.id = 'gp-audio';
+    audio.preload = 'metadata';
+    audio.src = track.audioUrl;
+    audio.setAttribute('playsinline', '');
+
+    audio.addEventListener('timeupdate', function() {
+      updateProgressFromAudio(audio);
+    });
+    audio.addEventListener('loadedmetadata', function() {
+      updateProgressFromAudio(audio);
+    });
+    audio.addEventListener('durationchange', function() {
+      updateProgressFromAudio(audio);
+    });
+    audio.addEventListener('ended', function() {
+      if (musicPlayer.playlist.length > 1) {
+        var i = (musicPlayer.index + 1) % musicPlayer.playlist.length;
+        playAt(i);
+      } else {
+        musicPlayer.playing = false;
+        updatePlayerChrome();
+      }
+    });
+    audio.addEventListener('error', function() {
+      // Free-track URL unavailable (VIP / region) → fall back to platform embed.
+      mountEmbed(track);
+      updatePlayerChrome();
+    });
+
+    wrap.appendChild(audio);
+    musicPlayer.engine = 'audio';
+
+    var knownDur = track.durationMs ? track.durationMs / 1000 : 0;
+    resetProgressUi(0, knownDur, true);
+
+    var playPromise = audio.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(function() {
+        mountEmbed(track);
+        updatePlayerChrome();
+      });
+    }
+    return true;
+  }
+
+  function playAt(index) {
+    if (!musicPlayer.playlist.length) return;
+    if (index < 0 || index >= musicPlayer.playlist.length) return;
+    musicPlayer.index = index;
+    musicPlayer.playing = true;
+    var track = musicPlayer.playlist[index];
+    if (track.audioUrl) {
+      mountAudio(track);
+    } else {
+      mountEmbed(track);
+    }
+    updatePlayerChrome();
+  }
+
+  function pauseMusic() {
+    musicPlayer.playing = false;
+    if (musicPlayer.engine === 'audio') {
+      var audio = document.getElementById('gp-audio');
+      if (audio) audio.pause();
+    } else {
+      // Cross-origin embeds cannot be paused via API — unload to stop audio.
+      clearEngine();
+    }
+    updatePlayerChrome();
+  }
+
+  function resumeOrPlay() {
+    if (!musicPlayer.playlist.length) return;
+    if (musicPlayer.engine === 'audio') {
+      var audio = document.getElementById('gp-audio');
+      if (audio) {
+        musicPlayer.playing = true;
+        audio.play();
+        updatePlayerChrome();
+        return;
+      }
+    }
+    playAt(musicPlayer.index);
+  }
+
+  function stopMusic() {
+    musicPlayer.playlist = [];
+    musicPlayer.index = 0;
+    musicPlayer.sourceTitle = '';
+    musicPlayer.playing = false;
+    clearEngine();
+    var list = document.getElementById('gp-playlist');
+    if (list) {
+      list.innerHTML = '';
+      list.hidden = true;
+    }
+    updatePlayerChrome();
+  }
+
+  /**
+   * Load a card's tracks as the active playlist.
+   * Switching cards does NOT call this — music keeps playing until user replaces the list.
+   */
+  function loadCardPlaylist(event, startIndex) {
+    if (!event || !event.tracks || !event.tracks.length) return;
+    startIndex = startIndex || 0;
+    musicPlayer.playlist = event.tracks.map(function(t) {
+      return {
+        platform: t.platform,
+        id: t.id,
+        title: trackDisplayTitle(t, event),
+        artist: t.artist || '',
+        coverUrl: t.coverUrl || '',
+        durationMs: t.durationMs || 0,
+        audioUrl: t.audioUrl || '',
+        embedUrl: t.embedUrl,
+      };
+    });
+    musicPlayer.sourceTitle = event.title || '';
+    playAt(startIndex);
+  }
+
+  /**
+   * Hydrate parser-emitted .ec-music-play placeholders with cover / title / artist.
+   * These replace music:: [name](url) — never render as markdown links.
+   */
+  function hydrateMusicButtons(container, event) {
+    if (!container) return;
+    var buttons = container.querySelectorAll('.ec-music-play');
+    if (!buttons.length && event.tracks && event.tracks.length) {
+      // Legacy pages with tracks but no markers — insert at top of content.
+      var wrap = document.createElement('div');
+      wrap.className = 'ec-music-plays';
+      event.tracks.forEach(function(_, i) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ec-music-play';
+        btn.setAttribute('data-track-index', String(i));
+        wrap.appendChild(btn);
+      });
+      container.insertBefore(wrap, container.firstChild);
+      buttons = container.querySelectorAll('.ec-music-play');
+    }
+
+    buttons.forEach(function(btn) {
+      var i = parseInt(btn.getAttribute('data-track-index'), 10);
+      var t = event.tracks && event.tracks[i];
+      if (!t) {
+        btn.remove();
+        return;
+      }
+      var title = trackDisplayTitle(t, event);
+      var cover = t.coverUrl
+        ? '<span class="ec-music-cover" style="background-image:url(\'' + escapeHtml(t.coverUrl) + '\')"></span>'
+        : '<span class="ec-music-cover"></span>';
+      var artist = t.artist
+        ? '<span class="ec-music-artist">' + escapeHtml(t.artist) + '</span>'
+        : '';
+      btn.type = 'button';
+      btn.innerHTML =
+        cover +
+        '<span class="ec-music-icon" aria-hidden="true">▶</span>' +
+        '<span class="ec-music-text">' +
+          '<span class="ec-music-title">' + escapeHtml(title) + '</span>' +
+          artist +
+        '</span>';
+      btn.addEventListener('click', function() {
+        loadCardPlaylist(event, i);
+      });
+    });
+  }
+
   var currentEventIndex = -1;
   var allEvents = [];
   var historyStack = [];
@@ -102,7 +541,8 @@
 
     cardContent.innerHTML = rawContent;
 
-    // Recreate iframes as live elements so embeds (Spotify/YouTube) load.
+    // Recreate non-music iframes as live elements (YouTube etc.).
+    // Music iframes are stripped at build time and played via the global player.
     cardContent.querySelectorAll('iframe').forEach(function(srcIframe) {
       var liveIframe = document.createElement('iframe');
       for (var i = 0; i < srcIframe.attributes.length; i++) {
@@ -110,6 +550,8 @@
       }
       srcIframe.parentNode.replaceChild(liveIframe, srcIframe);
     });
+
+    hydrateMusicButtons(cardContent, event);
 
     if (cardMedia) {
       // Only append videos here; images are already rendered inline in contentHtml.
@@ -211,6 +653,8 @@
       navigateBack();
     }
   }
+
+  ensureGlobalPlayer();
 
   var launchBtn = document.getElementById('launch-btn');
   if (launchBtn) {
@@ -409,6 +853,7 @@
 
   var archiveGrid = document.getElementById('archive-grid');
   if (archiveGrid) {
+    ensureGlobalPlayer();
     var archiveEvents = [];
     var activeTag = null;
 

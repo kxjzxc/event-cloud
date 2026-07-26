@@ -21,6 +21,7 @@ import type {
   PluginRegistry,
   RenderContext,
 } from '../types';
+import { enrichEventTracks } from './music-meta';
 
 export interface BuildOptions {
   dryRun?: boolean;
@@ -89,10 +90,20 @@ export class Builder {
     log(`  Backlinks: ${events.reduce((s, e) => s + e.backlinkIds.length, 0)}`);
     log(`  Related: ${events.reduce((s, e) => s + e.relatedIds.length, 0)}`);
 
-    // 4. Process images + copy videos
+    // 3c. Enrich music tracks (title / artist / cover)
+    const trackCount = events.reduce((s, e) => s + (e.tracks?.length || 0), 0);
+    if (trackCount > 0) {
+      log(`Enriching music metadata (${trackCount} tracks)...`);
+      for (const event of events) {
+        if (event.tracks?.length) {
+          await enrichEventTracks(event.tracks);
+        }
+      }
+    }
+
+    // 4. Process images
     log('Processing images...');
     const assetsDir = path.join(this.config.outputPath, 'assets');
-    const videosDir = path.join(assetsDir, 'videos');
 
     for (const event of events) {
       // Map from original asset path → processed site-relative paths
@@ -119,14 +130,8 @@ export class Builder {
           // Track mapping for contentHtml rewriting
           origToThumb.set(asset.originalPath, asset.thumbnailPath);
           origToPreview.set(asset.originalPath, asset.previewPath);
-        } else if (asset.type === 'video' && fs.existsSync(asset.originalPath)) {
-          // Copy video file to dist/assets/videos/
-          if (!fs.existsSync(videosDir)) fs.mkdirSync(videosDir, { recursive: true });
-          const videoName = path.basename(asset.originalPath);
-          const destPath = path.join(videosDir, videoName);
-          fs.copyFileSync(asset.originalPath, destPath);
-          asset.thumbnailPath = path.relative(this.config.outputPath, destPath).replace(/\\/g, '/');
         }
+        // Videos are intentionally unsupported for now — skip.
       }
 
       // Rewrite inline image paths in contentHtml:
