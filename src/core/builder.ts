@@ -21,7 +21,7 @@ import type {
   PluginRegistry,
   RenderContext,
 } from '../types';
-import { enrichEventTracks } from './music-meta';
+import { enrichAllTracks } from './music-meta';
 
 export interface BuildOptions {
   dryRun?: boolean;
@@ -90,15 +90,19 @@ export class Builder {
     log(`  Backlinks: ${events.reduce((s, e) => s + e.backlinkIds.length, 0)}`);
     log(`  Related: ${events.reduce((s, e) => s + e.relatedIds.length, 0)}`);
 
-    // 3c. Enrich music tracks (title / artist / cover)
-    const trackCount = events.reduce((s, e) => s + (e.tracks?.length || 0), 0);
-    if (trackCount > 0) {
-      log(`Enriching music metadata (${trackCount} tracks)...`);
-      for (const event of events) {
-        if (event.tracks?.length) {
-          await enrichEventTracks(event.tracks);
-        }
-      }
+    // 3c. Enrich music tracks (title / artist / cover) with cache + concurrency
+    const allTracks = events.flatMap((e) => e.tracks || []);
+    if (allTracks.length > 0) {
+      log(`Enriching music metadata (${allTracks.length} track refs)...`);
+      await enrichAllTracks(allTracks, {
+        cachePath: path.join(process.cwd(), '.cache', 'music.json'),
+        concurrency: 5,
+        onProgress: (done, total) => {
+          if (done === total || done % 5 === 0 || done === 1) {
+            log(`  Music metadata (${done}/${total})`);
+          }
+        },
+      });
     }
 
     // 4. Process images
