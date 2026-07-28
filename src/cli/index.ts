@@ -180,21 +180,27 @@ function makeGenerateCommand(name: string, alias: string) {
     .option('-v, --verbose', 'Verbose output')
     .option('-c, --config <path>', 'Config file path', 'config.json')
     .option('-s, --storage <name>', 'Storage plugin (local, r2, oss)', '')
+    .option('--include-hidden', 'Include hidden events in generated output')
+    .option('--all', 'Alias for --include-hidden')
     .action(async (opts: {
       watch?: boolean;
       dryRun?: boolean;
       verbose?: boolean;
       config: string;
       storage: string;
+      includeHidden?: boolean;
+      all?: boolean;
     }) => {
       try {
         const config = loadConfig(opts.config);
         if (opts.storage) config.storage = opts.storage;
+        if (opts.includeHidden || opts.all) config.includeHidden = true;
 
         console.log(chalk.cyan('⚙  Event Cloud — Generate'));
         console.log(chalk.gray(`   Graph:  ${config.logseqPath}`));
         console.log(chalk.gray(`   Output: ${config.outputPath}`));
         console.log(chalk.gray(`   Storage: ${config.storage}`));
+        if (config.includeHidden) console.log(chalk.yellow('   Hidden: included'));
         console.log();
 
         await runBuild(config, { dryRun: opts.dryRun, verbose: opts.verbose });
@@ -611,6 +617,7 @@ program
           thumbnailSize: 200,
           previewSize: 800,
         },
+        includeHidden: false,
       };
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf-8');
       console.log(chalk.green('   config.json ✓'));

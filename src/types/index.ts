@@ -70,6 +70,8 @@ export interface TMEvent {
   media: MediaAsset[];
   /** Music embeds from the page, in document order (card playlist) */
   tracks: MusicTrack[];
+  /** Build-time visibility flag. Hidden events are parsed but not published. */
+  hidden: boolean;
   /** Path to the source page file (relative to graph root) */
   sourceFile: string;
   /** Other Event ids from the same date */
@@ -176,6 +178,8 @@ export interface TMConfig {
   media: ImageProcessConfig;
   deploy?: DeployConfig;
   theme?: string;
+  /** Include hidden events in generated output. Defaults to false. */
+  includeHidden?: boolean;
 }
 
 export interface RenderContext {

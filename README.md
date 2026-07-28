@@ -44,7 +44,8 @@ npx node lib/cli/index.js preview
   "media": {
     "thumbnailSize": 200,
     "previewSize": 800
-  }
+  },
+  "includeHidden": false
 }
 ```
 
@@ -55,11 +56,12 @@ npx node lib/cli/index.js preview
 | `storage` | 存储插件：`local` / `r2` / `oss` | `local` |
 | `media.thumbnailSize` | 缩略图宽度（px） | `200` |
 | `media.previewSize` | 预览图宽度（px） | `800` |
+| `includeHidden` | 是否把隐藏事件也发布到站点产物 | `false` |
 
 ## CLI 命令
 
 ```bash
-evc build [--dry-run] [-v] [-c <config>] [--storage <name>]
+evc build [--dry-run] [--include-hidden|--all] [-v] [-c <config>] [--storage <name>]
 evc preview [--port <port>] [-c <config>]
 evc deploy --platform <github-pages|r2|oss>
 evc init --graph <path> --output <path>
@@ -110,6 +112,8 @@ Time Machine 的最小单位不是 Journal，而是 Event。
 - Journal 仅用于：若某天日记里写了 `[[页面名]]`，可为对应 Page 推断日期
 - 页面标题 = 文件名
 - 日期优先级：Journal 引用日期 → 页面 `date::` → 否则记为「未知时间的碎片」
+- 隐藏事件：页面属性写 `hidden:: true`（也支持 `private:: true` / `visibility:: hidden`）后，该 Event 默认不会发布到站点产物，也不会进入随机探索或归档
+- 全量构建：配置 `includeHidden: true` 或运行 `evc build --include-hidden` / `evc build --all` 后，隐藏事件会和普通事件一起发布
 
 页面内容支持的 Logseq 语法：
 
