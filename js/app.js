@@ -50,6 +50,7 @@
     /** 'audio' | 'embed' | null */
     engine: null,
     seeking: false,
+    collapsed: false,
   };
 
   function platformLabel(track) {
@@ -98,6 +99,7 @@
           '<button type="button" class="gp-btn gp-btn-primary" id="gp-toggle" title="播放/暂停" aria-label="播放">▶</button>' +
           '<button type="button" class="gp-btn" id="gp-next" title="下一首" aria-label="下一首">›</button>' +
           '<button type="button" class="gp-btn" id="gp-list-btn" title="播放列表" aria-label="播放列表">☰</button>' +
+          '<button type="button" class="gp-btn" id="gp-collapse" title="收起播放器" aria-label="收起播放器" aria-expanded="true">⌄</button>' +
           '<button type="button" class="gp-btn" id="gp-stop" title="停止" aria-label="停止">■</button>' +
         '</div>' +
       '</div>' +
@@ -131,6 +133,26 @@
       var list = document.getElementById('gp-playlist');
       if (!list) return;
       list.hidden = !list.hidden;
+    });
+    document.getElementById('gp-collapse').addEventListener('click', function() {
+      musicPlayer.collapsed = !musicPlayer.collapsed;
+      if (musicPlayer.collapsed) {
+        var list = document.getElementById('gp-playlist');
+        if (list) list.hidden = true;
+      }
+      updatePlayerChrome();
+    });
+    document.getElementById('gp-cover').addEventListener('click', function() {
+      if (!musicPlayer.collapsed) return;
+      musicPlayer.collapsed = false;
+      updatePlayerChrome();
+    });
+    document.getElementById('gp-cover').addEventListener('keydown', function(e) {
+      if (!musicPlayer.collapsed) return;
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      musicPlayer.collapsed = false;
+      updatePlayerChrome();
     });
 
     var seek = document.getElementById('gp-seek');
@@ -225,6 +247,7 @@
     var subEl = document.getElementById('gp-sub');
     var coverEl = document.getElementById('gp-cover');
     var toggleBtn = document.getElementById('gp-toggle');
+    var collapseBtn = document.getElementById('gp-collapse');
     var listEl = document.getElementById('gp-playlist');
     if (!root || !titleEl) return;
 
@@ -238,6 +261,8 @@
     }
 
     root.hidden = false;
+    root.classList.toggle('gp-collapsed', musicPlayer.collapsed);
+    root.classList.toggle('gp-playing', musicPlayer.playing);
     var track = musicPlayer.playlist[musicPlayer.index];
     titleEl.textContent = track.title || '未知曲目';
     if (subEl) {
@@ -249,7 +274,20 @@
       subEl.textContent = bits.filter(Boolean).join(' · ');
     }
     setCoverEl(coverEl, track.coverUrl || '');
+    if (coverEl) {
+      coverEl.setAttribute('aria-hidden', musicPlayer.collapsed ? 'false' : 'true');
+      coverEl.setAttribute('role', musicPlayer.collapsed ? 'button' : 'img');
+      coverEl.setAttribute('aria-label', musicPlayer.collapsed ? '展开播放器' : '当前播放封面');
+      coverEl.setAttribute('tabindex', musicPlayer.collapsed ? '0' : '-1');
+      coverEl.title = musicPlayer.collapsed ? '展开播放器' : '';
+    }
     if (toggleBtn) toggleBtn.textContent = musicPlayer.playing ? '❚❚' : '▶';
+    if (collapseBtn) {
+      collapseBtn.textContent = musicPlayer.collapsed ? '⌃' : '⌄';
+      collapseBtn.title = musicPlayer.collapsed ? '展开播放器' : '收起播放器';
+      collapseBtn.setAttribute('aria-label', musicPlayer.collapsed ? '展开播放器' : '收起播放器');
+      collapseBtn.setAttribute('aria-expanded', musicPlayer.collapsed ? 'false' : 'true');
+    }
 
     if (musicPlayer.engine !== 'audio') {
       var dur = track.durationMs ? track.durationMs / 1000 : 0;
