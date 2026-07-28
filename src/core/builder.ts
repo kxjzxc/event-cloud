@@ -73,13 +73,20 @@ export class Builder {
 
     // 3. Parse the graph
     log('Parsing Logseq graph...');
-    const events = await parser.parse(this.config.logseqPath);
-    log(`Found ${events.length} events.`);
+    const parsedEvents = await parser.parse(this.config.logseqPath);
+    const hiddenEvents = parsedEvents.filter((e) => e.hidden);
+    const includeHidden = this.config.includeHidden === true;
+    const events = includeHidden ? parsedEvents : parsedEvents.filter((e) => !e.hidden);
+    log(`Found ${parsedEvents.length} events (${hiddenEvents.length} hidden, ${events.length} published).`);
+    if (includeHidden && hiddenEvents.length > 0) {
+      log('  Hidden events included by config.');
+    }
 
     if (dryRun) {
-      console.log(`\n[Dry Run] Parsed ${events.length} events:`);
+      console.log(`\n[Dry Run] Parsed ${events.length} published events${includeHidden ? ' (hidden included)' : ''}:`);
       for (const e of events) {
-        console.log(`  • ${e.date} — ${e.title} (${e.media.length} media, ${e.tags.length} tags)`);
+        const marker = e.hidden ? ' [hidden]' : '';
+        console.log(`  • ${e.date} — ${e.title}${marker} (${e.media.length} media, ${e.tags.length} tags)`);
       }
       return { events: events.length, images: 0, videos: 0, backlinks: 0, relatedPairs: 0, tags: 0, outputFiles: 0 };
     }
