@@ -80,6 +80,14 @@
     "mediaCount": 1
   },
   {
+    "id": "2026-07-28-20260728-咖啡时间与鹊鸲",
+    "title": "20260728 咖啡时间与鹊鸲",
+    "date": "2026-07-28",
+    "tags": [],
+    "hasMedia": true,
+    "mediaCount": 3
+  },
+  {
     "id": "2026-07-18-2026718-加班时间",
     "title": "2026718 加班时间",
     "date": "2026-07-18",
@@ -100,8 +108,8 @@
     "title": "Miss Right",
     "date": "2026-07-27",
     "tags": [],
-    "hasMedia": false,
-    "mediaCount": 0
+    "hasMedia": true,
+    "mediaCount": 1
   },
   {
     "id": "2026-07-27-the-coats-of-claude",
@@ -131,6 +139,14 @@
     "id": "2026-07-24-东北烧烤聚餐",
     "title": "东北烧烤聚餐",
     "date": "2026-07-24",
+    "tags": [],
+    "hasMedia": true,
+    "mediaCount": 1
+  },
+  {
+    "id": "2026-07-27-东野圭吾的离开",
+    "title": "东野圭吾的离开",
+    "date": "2026-07-27",
     "tags": [],
     "hasMedia": true,
     "mediaCount": 1
@@ -176,6 +192,14 @@
     "mediaCount": 8
   },
   {
+    "id": "2026-07-28-初读-其主之声",
+    "title": "初读《其主之声》",
+    "date": "2026-07-28",
+    "tags": [],
+    "hasMedia": true,
+    "mediaCount": 1
+  },
+  {
     "id": "2026-07-14-即将开门的过乐喜",
     "title": "即将开门的过乐喜",
     "date": "2026-07-14",
@@ -190,6 +214,14 @@
     "tags": [],
     "hasMedia": true,
     "mediaCount": 2
+  },
+  {
+    "id": "2026-07-29-咖啡时间-cctv味道",
+    "title": "咖啡时间·CCTV味道",
+    "date": "2026-07-29",
+    "tags": [],
+    "hasMedia": true,
+    "mediaCount": 4
   },
   {
     "id": "2026-07-22-在盛夏死去的蝉",
@@ -294,6 +326,14 @@
     "tags": [],
     "hasMedia": true,
     "mediaCount": 7
+  },
+  {
+    "id": "2026-07-28-没有ai的二零二二年",
+    "title": "没有AI的二零二二年",
+    "date": "2026-07-28",
+    "tags": [],
+    "hasMedia": false,
+    "mediaCount": 0
   },
   {
     "id": "2026-07-13-波莱罗舞曲",
@@ -446,6 +486,14 @@
     "tags": [],
     "hasMedia": true,
     "mediaCount": 3
+  },
+  {
+    "id": "2026-07-29-麦辣大四角",
+    "title": "麦辣大四角",
+    "date": "2026-07-29",
+    "tags": [],
+    "hasMedia": true,
+    "mediaCount": 2
   },
   {
     "id": "2026-07-26-黄浦江轮渡",
