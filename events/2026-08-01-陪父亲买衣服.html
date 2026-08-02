@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>陪父亲买衣服 — Event Cloud</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <a href="../index.html" class="back-home">← 返回</a>
+  
+  <div class="event-page" data-event-id="2026-08-01-陪父亲买衣服">
+    <header class="event-header">
+      <div class="event-date">2026-08-01</div>
+      <h1 class="event-title">陪父亲买衣服 — Event Cloud</h1>
+    </header>
+    
+    <article class="event-content">
+      <p>中年男人的选择还是偏少，驾驭不了亮色，只能选择黑色和蓝色，而Polo衫以外的衣服也不太接受，希望不要太年轻的风格。<br>UR是直接被排除了，但是UR的风格好适合我，以后我考虑去这家买几件。优衣库我爸也试了试，没有心仪的衣服。阿迪达斯倒是有一件纯棉的白色网球POLO衫，一问价格899元，就算我同意我爸也不同意，以后可以考虑看看有没有打折，当礼物送他了。<br>最后选了森马的一件99元蓝黑色POLO衫。我其实也是最近因为荷兰弟的新闻才对这个牌子有印象，没想到竟然是温州的牌子。我爸说得也对，一个温州在上海买温州的牌子，也是有点奇怪。</p>
+
+    </article>
+    
+    
+    
+    
+    
+    
+  </div>
+  
+  <script src="../js/app.js"></script>
+  <script>
+    (function () {
+      // Lightbox for inline images (ec-img class)
+      var overlay = document.createElement('div');
+      overlay.id = 'ec-lightbox';
+      overlay.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;cursor:zoom-out;align-items:center;justify-content:center;';
+      var lightboxImg = document.createElement('img');
+      lightboxImg.style.cssText = 'max-width:92vw;max-height:92vh;border-radius:6px;box-shadow:0 4px 32px rgba(0,0,0,.6);';
+      overlay.appendChild(lightboxImg);
+      document.body.appendChild(overlay);
+
+      function openLightbox(src) {
+        lightboxImg.src = src;
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLightbox() {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      overlay.addEventListener('click', closeLightbox);
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeLightbox();
+      });
+
+      document.querySelectorAll('.ec-img').forEach(function(img) {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', function() {
+          var preview = img.getAttribute('data-preview') || img.src;
+          openLightbox(preview);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
