@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>挖掘过去之痕迹 — Event Cloud</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <a href="../index.html" class="back-home">← 返回</a>
+  
+  <div class="event-page" data-event-id="2025-08-03-挖掘过去之痕迹">
+    <header class="event-header">
+      <div class="event-date">2025-08-03</div>
+      <h1 class="event-title">挖掘过去之痕迹 — Event Cloud</h1>
+    </header>
+    
+    <article class="event-content">
+      <p>晚上或许是一时兴起，我在挖掘自己以前的记录，发现大学的回忆少的可怜，十八岁以前更是只有些许皮毛，过往的人生浓缩后只剩下零星一点。<br>突然想到某个中学同学，热衷于摄影，而他的QQ空间更是不设限的全量展示，遂我从二零一八年高考结束的那天开始往前翻阅，搜寻我们关于中学的共同记忆。他的空间确实如同宝藏，让我翻到不少珍贵的老照片，但同时两种情绪开始在我心中翻涌：一方面我越发感觉自身过往之浅薄，自己24岁的生活才勉强够得上他高中时期青春又丰富的生活；另一方面我又觉得未来生活之无望，当年充满无限希望，仿佛走出校园后每个人都有不同的未来，而如今年岁增长兴趣衰退，似乎已无路可走。<br>看完这些说说后，我感觉自己从一场长梦中醒来，一时分不清自己所在何方，只觉无限悲哀。</p>
+
+    </article>
+    
+    
+    
+    
+    
+    
+  </div>
+  
+  <script src="../js/app.js"></script>
+  <script>
+    (function () {
+      // Lightbox for inline images (ec-img class)
+      var overlay = document.createElement('div');
+      overlay.id = 'ec-lightbox';
+      overlay.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;cursor:zoom-out;align-items:center;justify-content:center;';
+      var lightboxImg = document.createElement('img');
+      lightboxImg.style.cssText = 'max-width:92vw;max-height:92vh;border-radius:6px;box-shadow:0 4px 32px rgba(0,0,0,.6);';
+      overlay.appendChild(lightboxImg);
+      document.body.appendChild(overlay);
+
+      function openLightbox(src) {
+        lightboxImg.src = src;
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLightbox() {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      overlay.addEventListener('click', closeLightbox);
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeLightbox();
+      });
+
+      document.querySelectorAll('.ec-img').forEach(function(img) {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', function() {
+          var preview = img.getAttribute('data-preview') || img.src;
+          openLightbox(preview);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>一个周日的午后 — Event Cloud</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <a href="../index.html" class="back-home">← 返回</a>
+  
+  <div class="event-page" data-event-id="2025-08-03-一个周日的午后">
+    <header class="event-header">
+      <div class="event-date">2025-08-03</div>
+      <h1 class="event-title">一个周日的午后 — Event Cloud</h1>
+    </header>
+    
+    <article class="event-content">
+      <p>那天大抵是没有吃早午饭，直到下午三点才出门到KKONE去吃寿司郎。<br>点了一份当季的深海红蟹腿寿司，但没有找到任何点评记录，估计是没有什么深刻的印象了，就是吃个新鲜。</p>
+<img class="ec-img" src="../assets/thumbnails/2026-08-03-18-51-45.webp" data-preview="../assets/previews/2026-08-03-18-51-45.webp" alt="2026-08-03-18-51-45.jpeg" loading="lazy">
+
+<p>吃完寿司郎后就跑到深圳图书馆还书重新借，毕竟两月之期已到，虽然没有读完但必须得线下重新借了。</p>
+<img class="ec-img" src="../assets/thumbnails/2026-08-03-18-51-52.webp" data-preview="../assets/previews/2026-08-03-18-51-52.webp" alt="2026-08-03-18-51-52.jpeg" loading="lazy">
+
+<p>顺便在中心书城的面包新语兑换掉舒芙蕾的0元券，说实话感觉一般，没想到舒芙蕾是这样软的口感。</p>
+<img class="ec-img" src="../assets/thumbnails/2026-08-03-18-52-28.webp" data-preview="../assets/previews/2026-08-03-18-52-28.webp" alt="2026-08-03-18-52-28.jpeg" loading="lazy">
+    </article>
+    
+    
+    
+    
+    
+    
+  </div>
+  
+  <script src="../js/app.js"></script>
+  <script>
+    (function () {
+      // Lightbox for inline images (ec-img class)
+      var overlay = document.createElement('div');
+      overlay.id = 'ec-lightbox';
+      overlay.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;cursor:zoom-out;align-items:center;justify-content:center;';
+      var lightboxImg = document.createElement('img');
+      lightboxImg.style.cssText = 'max-width:92vw;max-height:92vh;border-radius:6px;box-shadow:0 4px 32px rgba(0,0,0,.6);';
+      overlay.appendChild(lightboxImg);
+      document.body.appendChild(overlay);
+
+      function openLightbox(src) {
+        lightboxImg.src = src;
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLightbox() {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      overlay.addEventListener('click', closeLightbox);
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeLightbox();
+      });
+
+      document.querySelectorAll('.ec-img').forEach(function(img) {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', function() {
+          var preview = img.getAttribute('data-preview') || img.src;
+          openLightbox(preview);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
