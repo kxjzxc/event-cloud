@@ -176,12 +176,28 @@
     "mediaCount": 2
   },
   {
+    "id": "2026-08-06-傍晚明亮的云",
+    "title": "傍晚明亮的云",
+    "date": "2026-08-06",
+    "tags": [],
+    "hasMedia": true,
+    "mediaCount": 2
+  },
+  {
     "id": "2026-07-24-光遇-致梵高",
     "title": "光遇 致梵高",
     "date": "2026-07-24",
     "tags": [],
     "hasMedia": true,
     "mediaCount": 3
+  },
+  {
+    "id": "2026-08-06-公司楼下的树开花",
+    "title": "公司楼下的树开花",
+    "date": "2026-08-06",
+    "tags": [],
+    "hasMedia": true,
+    "mediaCount": 1
   },
   {
     "id": "2026-07-20-关于创新的梦",
@@ -235,6 +251,14 @@
     "id": "2026-07-11-台风巴威登陆之前",
     "title": "台风巴威登陆之前",
     "date": "2026-07-11",
+    "tags": [],
+    "hasMedia": true,
+    "mediaCount": 2
+  },
+  {
+    "id": "2026-08-05-吃点关东煮回回血",
+    "title": "吃点关东煮回回血",
+    "date": "2026-08-05",
     "tags": [],
     "hasMedia": true,
     "mediaCount": 2
@@ -326,6 +350,30 @@
     "tags": [],
     "hasMedia": false,
     "mediaCount": 0
+  },
+  {
+    "id": "2026-08-03-插瓶的绣球花",
+    "title": "插瓶的绣球花",
+    "date": "2026-08-03",
+    "tags": [],
+    "hasMedia": true,
+    "mediaCount": 1
+  },
+  {
+    "id": "2026-08-03-无可言说的日常",
+    "title": "无可言说的日常",
+    "date": "2026-08-03",
+    "tags": [],
+    "hasMedia": false,
+    "mediaCount": 0
+  },
+  {
+    "id": "2026-08-07-早上如山峦叠嶂的积云",
+    "title": "早上如山峦叠嶂的积云",
+    "date": "2026-08-07",
+    "tags": [],
+    "hasMedia": true,
+    "mediaCount": 1
   },
   {
     "id": "2026-07-14-时光机初版设计",
@@ -464,6 +512,14 @@
     "mediaCount": 1
   },
   {
+    "id": "2026-08-04-肯德基纸包香焗鸡",
+    "title": "肯德基纸包香焗鸡",
+    "date": "2026-08-04",
+    "tags": [],
+    "hasMedia": true,
+    "mediaCount": 2
+  },
+  {
     "id": "2026-07-10-自公司骑行至威海渔村饭店",
     "title": "自公司骑行至威海渔村饭店",
     "date": "2026-07-10",
@@ -515,6 +571,14 @@
     "id": "2026-07-11-解锁冷泡茶",
     "title": "解锁冷泡茶",
     "date": "2026-07-11",
+    "tags": [],
+    "hasMedia": true,
+    "mediaCount": 1
+  },
+  {
+    "id": "2026-08-05-过乐喜的糯米饭",
+    "title": "过乐喜的糯米饭",
+    "date": "2026-08-05",
     "tags": [],
     "hasMedia": true,
     "mediaCount": 1
