@@ -98,7 +98,6 @@ export class LogseqParser implements IParser {
 
     const rawContent = fs.readFileSync(filePath, 'utf-8');
     const pageProperties = this.extractPageProperties(rawContent);
-    const hidden = this.isHiddenEvent(pageProperties);
 
     const dateProperty = pageProperties['date']?.trim();
     let date: string;
@@ -123,6 +122,13 @@ export class LogseqParser implements IParser {
     const tracks = this.extractTracks(rawContent);
     const contentRaw = this.blocksToPageMarkdown(blocks, tracks);
     const contentHtml = this.renderMarkdown(contentRaw, tracks);
+
+    // Build-time visibility: honor the Logseq page property `hidden:: true`
+    // (case-insensitive key, values `true/1/yes/y/on`). Any other value or
+    // absence keeps the event public. This mirrors the TMEvent.hidden contract
+    // defined in src/types — "parsed but not published".
+    const hiddenRaw = pageProperties['hidden']?.trim().toLowerCase();
+    const hidden = ['true', '1', 'yes', 'y', 'on'].includes(hiddenRaw ?? '');
 
     return {
       id,
@@ -219,26 +225,12 @@ export class LogseqParser implements IParser {
    */
   private extractPageProperties(content: string): Record<string, string> {
     const props: Record<string, string> = {};
-    const lines = content.split(/\r?\n/);
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed) continue;
-
-      const m = trimmed.match(/^(?:-\s+)?([a-zA-Z_][a-zA-Z0-9_]*)::\s*(.*)$/);
-      if (!m) break;
-
+    const regex = /^([a-zA-Z_][a-zA-Z0-9_]*)::\s*(.*)$/gm;
+    let m: RegExpExecArray | null;
+    while ((m = regex.exec(content)) !== null) {
       props[m[1].toLowerCase()] = m[2].trim();
     }
     return props;
-  }
-
-  private isHiddenEvent(properties: Record<string, string>): boolean {
-    const value =
-      properties['hidden'] ||
-      properties['private'] ||
-      properties['visibility'];
-    if (!value) return false;
-    return /^(true|yes|y|1|hidden|private)$/i.test(value.trim());
   }
 
   /**

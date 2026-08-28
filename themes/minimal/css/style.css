@@ -5,7 +5,8 @@
   --text: #1a1a1a;
   --text-dim: #888888;
   --border: #e0e0e0;
-  --accent: #1a1a1a;
+  --accent: #4a86e8;          /* 真正的强调色（温和的蓝）：链接 / 入口等需要被注意的元素 */
+  --accent-soft: #c7d9f5;     /* accent 的淡色版，用于默认下划线 / 轻微背景 */
   --radius: 16px;
   --shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.12);
@@ -72,6 +73,33 @@ html, body {
 .launch-btn:hover {
   background: var(--text);
   color: var(--bg);
+}
+
+/* Top-right corner links (About) */
+.topbar-links {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.75rem;
+  z-index: 20;
+}
+.topbar-link {
+  background: transparent;
+  border: none;
+  color: var(--text);                 /* 用正文色 + 下划线提示，不再靠灰/透明度伪装成「水印」 */
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  padding: 0.3rem 0.1rem;
+  opacity: 1;
+  /* 默认就有一条淡 accent 下划线，让用户一眼知道「这里是可点的链接 / 入口」 */
+  border-bottom: 1px solid var(--accent-soft);
+  transition: color 0.2s, border-bottom-color 0.2s;
+  border-radius: 0;
+}
+.topbar-link:hover {
+  opacity: 1;
+  color: var(--accent);
+  border-bottom-color: var(--accent);
 }
 
 .home-actions {
@@ -244,6 +272,65 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* About modal content */
+.about-card {
+  max-width: 540px;
+  width: min(92vw, 540px);
+  height: auto;
+  max-height: 82vh;
+}
+.about-card .card-body {
+  padding: 1.5rem 2rem 1.75rem;
+  overflow-y: auto;
+}
+.about-content {
+  font-size: 0.98rem;
+  line-height: 1.9;
+}
+.about-content > p {
+  margin: 0.5rem 0;
+}
+.about-content > ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.25rem 0 0.75rem;
+}
+.about-content > ul > li {
+  padding: 0.65rem 0;
+  border-bottom: 1px dashed rgba(127, 127, 127, 0.15);
+}
+.about-content > ul > li:first-child {
+  padding-top: 0.25rem;
+}
+.about-content > ul > li:last-child {
+  border-bottom: none;
+  padding-bottom: 0.25rem;
+}
+.about-content a {
+  color: var(--accent);
+  text-decoration: none;
+  /* 默认就有一条淡 accent 下划线，让链接在 About 卡片里一眼可辨认；
+     之前 transparent 导致 GitHub/Blog 链接看起来和正文没差，用户不会去点。 */
+  border-bottom: 1px solid var(--accent-soft);
+  padding: 0 1px;
+  transition: color 0.2s, border-color 0.2s;
+  overflow-wrap: break-word;
+  word-break: normal;
+  border-radius: 2px;
+}
+.about-content a:hover {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+  text-decoration: none;
+}
+/* If user writes a social row as link · link, give it spacing */
+.about-content li > a + a {
+  margin-left: 0.5em;
+}
+.about-content .tag, .about-content .tm-link {
+  display: none;
 }
 
 .card-close {
