@@ -22,6 +22,7 @@ import type {
   RenderContext,
 } from '../types';
 import { enrichAllTracks } from './music-meta';
+import { sanitizeHtmlSimple } from '../utils/sanitize-html-simple';
 
 export interface BuildOptions {
   dryRun?: boolean;
@@ -187,12 +188,66 @@ export class Builder {
 
     // 5. Render
     log('Rendering static site...');
+    // 5a. Read, render, and sanitize about.md if it exists at the graph root.
+    //
+    //     SECURITY PIPELINE (in order, defense in depth):
+    //
+    //     1) marked.parse() with HTML BLOCKED via custom renderer.html()
+    //        Any raw HTML written by the user directly inside about.md
+    //        (e.g. <script>, <iframe>, <p onclick=...>) is HTML-escaped into
+    //        plain text so it can never reach the output as DOM nodes.
+    //        This is our primary defense. We deliberately DO NOT rely on
+    //        marked's legacy `sanitize` option (removed in marked v6).
+    //
+    //     2) sanitizeHtmlSimple — zero-dep tag/attr allow-list parser
+    //        Secondary / belt-and-suspenders. Even if a future marked bug
+    //        leaks a tag, or a markdown construct maps to a tag we don't
+    //        want, the allow-list strips it. Handles protocol gating,
+    //        on* handler stripping, and post-processes external links to
+    //        target=_blank + rel=noopener noreferrer nofollow.
+    //
+    //     3) </script> escape — only needed because aboutHtml itself is
+    //        later injected next to <script type="application/json"> blocks;
+    //        this is a defense-in-depth guard for nested script-tag closing.
+    let aboutHtml = '';
+    const aboutMdPath = path.join(this.config.logseqPath, 'about.md');
+    if (fs.existsSync(aboutMdPath)) {
+      try {
+        const { marked, Renderer } = await import('marked');
+        // Marked v12: `Renderer` is the built-in HTML renderer base class.
+        // We keep all markdown-native token rendering (links, lists, images,
+        // emphasis, headings) and only override the `html` token emitter to
+        // escape raw HTML instead of passing it through verbatim.
+        const noHtmlRenderer = new (Renderer || marked.Renderer)();
+        const escapeHtml = (s: string): string =>
+          String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+        noHtmlRenderer.html = (html: string): string => escapeHtml(html);
+        marked.setOptions({
+          breaks: true,
+          gfm: true,
+          renderer: noHtmlRenderer,
+        });
+        const raw = fs.readFileSync(aboutMdPath, 'utf-8');
+        const rawHtml = marked.parse(raw) as string;
+        const clean = sanitizeHtmlSimple(rawHtml);
+        aboutHtml = String(clean || '').replace(/<\/script/gi, '<\\/script');
+        log(`  Loaded about.md (${aboutMdPath})`);
+      } catch (e) {
+        log(`  ⚠ Failed to parse about.md: ${e}`);
+        aboutHtml = '';
+      }
+    }
     const ctx: RenderContext = {
       outputPath: this.config.outputPath,
       storage,
       config: this.config,
     };
-    await renderer.render(events, index, ctx);
+    await renderer.render(events, index, ctx, aboutHtml);
 
     // 6. Write index.json
     await storage.save('index.json', JSON.stringify(index, null, 2));

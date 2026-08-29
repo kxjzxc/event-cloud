@@ -132,10 +132,21 @@ export interface IImageProcessor {
 
 /**
  * Renderer plugin — converts Events + index into static HTML pages.
+ *
+ * Optional `aboutHtml` is pre-rendered, sanitized HTML for an "About" entrypoint.
+ * When present and non-empty, renderers should surface an About link/modal on the
+ * home page; when absent or empty the entrypoint MUST be hidden so existing
+ * downstream renderers (that only know the 3-arg signature) keep working without
+ * any behavioral change.
  */
 export interface IRenderer {
   readonly name: string;
-  render(events: TMEvent[], index: EventIndexEntry[], ctx: RenderContext): Promise<void>;
+  render(
+    events: TMEvent[],
+    index: EventIndexEntry[],
+    ctx: RenderContext,
+    aboutHtml?: string,
+  ): Promise<void>;
 }
 
 // ─── Config Types ─────────────────────────────────────────────
