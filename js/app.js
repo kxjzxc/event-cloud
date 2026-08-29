@@ -751,6 +751,20 @@
       });
     }
 
+    // ── About modal ──────────────────────────────────────────────
+    var aboutBtn = document.getElementById('about-btn');
+    var aboutModal = document.getElementById('about-modal');
+    var aboutClose = document.getElementById('about-close');
+    if (aboutBtn && aboutModal) {
+      aboutBtn.addEventListener('click', function() { aboutModal.classList.add('active'); });
+    }
+    if (aboutClose && aboutModal) {
+      aboutClose.addEventListener('click', function() { aboutModal.classList.remove('active'); });
+      aboutModal.addEventListener('click', function(e) {
+        if (e.target === aboutModal) aboutModal.classList.remove('active');
+      });
+    }
+
     if (dateConfirm && datePicker) {
       dateConfirm.addEventListener('click', function() {
         var date = datePicker.value;
@@ -881,6 +895,11 @@
   }
 
   document.addEventListener('keydown', function(e) {
+    var aboutModal = document.getElementById('about-modal');
+    if (aboutModal && aboutModal.classList.contains('active')) {
+      if (e.key === 'Escape') aboutModal.classList.remove('active');
+      return;
+    }
     if (!modal || !modal.classList.contains('active')) return;
     if (e.key === 'Escape') closeCard();
     if (e.key === ' ' || e.key === 'Spacebar') {
