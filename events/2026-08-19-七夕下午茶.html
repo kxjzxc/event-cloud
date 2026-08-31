@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>七夕下午茶 — Event Cloud</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <a href="../index.html" class="back-home">← 返回</a>
+  
+  <div class="event-page" data-event-id="2026-08-19-七夕下午茶">
+    <header class="event-header">
+      <div class="event-date">2026-08-19</div>
+      <h1 class="event-title">七夕下午茶 — Event Cloud</h1>
+    </header>
+    
+    <article class="event-content">
+      <p>以公司的猫蓝山生日为主题的七夕下午茶，终于是一人一份制的了，虽然高热量高碳水，但好歹也是吃上了</p>
+<img class="ec-img" src="../assets/thumbnails/2026-08-20-16-29-15.webp" data-preview="../assets/previews/2026-08-20-16-29-15.webp" alt="2026-08-20-16-29-15.jpeg" loading="lazy">
+    </article>
+    
+    
+    
+    
+    
+    
+  </div>
+  
+  <script src="../js/app.js"></script>
+  <script>
+    (function () {
+      // Lightbox for inline images (ec-img class)
+      var overlay = document.createElement('div');
+      overlay.id = 'ec-lightbox';
+      overlay.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;cursor:zoom-out;align-items:center;justify-content:center;';
+      var lightboxImg = document.createElement('img');
+      lightboxImg.style.cssText = 'max-width:92vw;max-height:92vh;border-radius:6px;box-shadow:0 4px 32px rgba(0,0,0,.6);';
+      overlay.appendChild(lightboxImg);
+      document.body.appendChild(overlay);
+
+      function openLightbox(src) {
+        lightboxImg.src = src;
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLightbox() {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      overlay.addEventListener('click', closeLightbox);
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeLightbox();
+      });
+
+      document.querySelectorAll('.ec-img').forEach(function(img) {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', function() {
+          var preview = img.getAttribute('data-preview') || img.src;
+          openLightbox(preview);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

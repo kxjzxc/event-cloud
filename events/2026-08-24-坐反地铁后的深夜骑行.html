@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>坐反地铁后的深夜骑行 — Event Cloud</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <a href="../index.html" class="back-home">← 返回</a>
+  
+  <div class="event-page" data-event-id="2026-08-24-坐反地铁后的深夜骑行">
+    <header class="event-header">
+      <div class="event-date">2026-08-24</div>
+      <h1 class="event-title">坐反地铁后的深夜骑行 — Event Cloud</h1>
+    </header>
+    
+    <article class="event-content">
+      <p>健完身回到公司打印了几份文件，坐地铁时却因此搞错方向，看着书坐过了好几站才发现自己又一次坐反了方向。连忙在交通大学下站，却发现末班车已经结束。<br>无奈之下只好计划骑车回公司，再用公司补贴打车回去。但考虑到手机电量所剩无几，而且我需要最新版共享单车放置手机帮我导航，就先充着电边走边找车（顺便打卡多邻国）。<br>走了一会我突然想到武康大楼离此不远，难得深夜无人，索性再去打个卡。夜晚的康平路寥寥无人，路灯昏黄，巨大的法国梧桐伫立道路两侧，浓密的树荫遮蔽夜空。那些已经存在好多好多年的历史建筑在这样的夜晚里更加沉默，隐秘在阴暗之中，仅能借助路灯瞧见其些许饱经风霜的样貌。</p>
+<img class="ec-img" src="../assets/thumbnails/2026-08-25-00-41-02.webp" data-preview="../assets/previews/2026-08-25-00-41-02.webp" alt="2026-08-25-00-41-02.jpeg" loading="lazy">
+
+<p>康平路与余庆路路口，有一间全是镜子的亭子。</p>
+<img class="ec-img" src="../assets/thumbnails/2026-08-25-12-04-23.webp" data-preview="../assets/previews/2026-08-25-12-04-23.webp" alt="2026-08-25-12-04-23.jpeg" loading="lazy">
+
+<p>余庆路上有一间泛着蓝光的房子，颇为诡异</p>
+<img class="ec-img" src="../assets/thumbnails/2026-08-25-00-51-34.webp" data-preview="../assets/previews/2026-08-25-00-51-34.webp" alt="2026-08-25-00-51-34.jpeg" loading="lazy">
+
+<p>深夜的武康大楼确实没什么人，视野很好，但拍摄难度很高，实在拍不出什么好照片。</p>
+<img class="ec-img" src="../assets/thumbnails/2026-08-25-00-51-50.webp" data-preview="../assets/previews/2026-08-25-00-51-50.webp" alt="2026-08-25-00-51-50.jpeg" loading="lazy">
+
+<p>在武康大楼附近转了一圈终于找了目标共享单车，遂骑车返回公司。<br>余庆路上有两间武警岗亭，因为没开灯，我隐约才看见里面有人站岗。路过第一间时我还在猜里面是真人还是雕像，第二间自习看了一眼，才意识到是会动的真人。<br>在一个十字路口等红灯的时候，发现马路对面有着沪港国际几个大字，巧的是公司在深圳的园区叫深港国际，遂分享给公司的同事。</p>
+<img class="ec-img" src="../assets/thumbnails/2026-08-25-12-31-35.webp" data-preview="../assets/previews/2026-08-25-12-31-35.webp" alt="2026-08-25-12-31-35.jpeg" loading="lazy">
+    </article>
+    
+    
+    
+    
+    
+    
+  </div>
+  
+  <script src="../js/app.js"></script>
+  <script>
+    (function () {
+      // Lightbox for inline images (ec-img class)
+      var overlay = document.createElement('div');
+      overlay.id = 'ec-lightbox';
+      overlay.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;cursor:zoom-out;align-items:center;justify-content:center;';
+      var lightboxImg = document.createElement('img');
+      lightboxImg.style.cssText = 'max-width:92vw;max-height:92vh;border-radius:6px;box-shadow:0 4px 32px rgba(0,0,0,.6);';
+      overlay.appendChild(lightboxImg);
+      document.body.appendChild(overlay);
+
+      function openLightbox(src) {
+        lightboxImg.src = src;
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLightbox() {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      overlay.addEventListener('click', closeLightbox);
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeLightbox();
+      });
+
+      document.querySelectorAll('.ec-img').forEach(function(img) {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', function() {
+          var preview = img.getAttribute('data-preview') || img.src;
+          openLightbox(preview);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

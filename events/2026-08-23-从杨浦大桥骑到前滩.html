@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>从杨浦大桥骑到前滩 — Event Cloud</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <a href="../index.html" class="back-home">← 返回</a>
+  
+  <div class="event-page" data-event-id="2026-08-23-从杨浦大桥骑到前滩">
+    <header class="event-header">
+      <div class="event-date">2026-08-23</div>
+      <h1 class="event-title">从杨浦大桥骑到前滩 — Event Cloud</h1>
+    </header>
+    
+    <article class="event-content">
+      <img class="ec-img" src="../assets/thumbnails/2026-08-27-17-59-26.webp" data-preview="../assets/previews/2026-08-27-17-59-26.webp" alt="2026-08-27-17-59-26.jpeg" loading="lazy">
+
+<p>午饭时决定下午出门骑车，从杨浦大桥出发，骑着共享单车驶向前滩。<br>身后是蓝天白云，而我骑行的方向却尽是阴云密布，如同冷峻的巨大战舰，占据了广阔无垠的天空。<br>我想一路骑到蓝天之下，但骑到最后只有遥远的地方有夕阳余晖。</p>
+<img class="ec-img" src="../assets/thumbnails/2026-08-27-17-59-47.webp" data-preview="../assets/previews/2026-08-27-17-59-47.webp" alt="2026-08-27-17-59-47.jpeg" loading="lazy">
+
+<img class="ec-img" src="../assets/thumbnails/2026-08-27-18-00-17.webp" data-preview="../assets/previews/2026-08-27-18-00-17.webp" alt="波浪一样的绿道" loading="lazy">
+
+<img class="ec-img" src="../assets/thumbnails/2026-08-27-18-01-11.webp" data-preview="../assets/previews/2026-08-27-18-01-11.webp" alt="2026-08-27-18-01-11.jpeg" loading="lazy">
+
+<img class="ec-img" src="../assets/thumbnails/2026-08-27-18-01-27.webp" data-preview="../assets/previews/2026-08-27-18-01-27.webp" alt="2026-08-27-18-01-27.jpeg" loading="lazy">
+    </article>
+    
+    
+    
+    
+    
+    
+  </div>
+  
+  <script src="../js/app.js"></script>
+  <script>
+    (function () {
+      // Lightbox for inline images (ec-img class)
+      var overlay = document.createElement('div');
+      overlay.id = 'ec-lightbox';
+      overlay.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;cursor:zoom-out;align-items:center;justify-content:center;';
+      var lightboxImg = document.createElement('img');
+      lightboxImg.style.cssText = 'max-width:92vw;max-height:92vh;border-radius:6px;box-shadow:0 4px 32px rgba(0,0,0,.6);';
+      overlay.appendChild(lightboxImg);
+      document.body.appendChild(overlay);
+
+      function openLightbox(src) {
+        lightboxImg.src = src;
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLightbox() {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      overlay.addEventListener('click', closeLightbox);
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeLightbox();
+      });
+
+      document.querySelectorAll('.ec-img').forEach(function(img) {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', function() {
+          var preview = img.getAttribute('data-preview') || img.src;
+          openLightbox(preview);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

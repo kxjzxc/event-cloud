@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>20260827 早晨厚实的浮云 — Event Cloud</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <a href="../index.html" class="back-home">← 返回</a>
+  
+  <div class="event-page" data-event-id="2026-08-27-20260827-早晨厚实的浮云">
+    <header class="event-header">
+      <div class="event-date">2026-08-27</div>
+      <h1 class="event-title">20260827 早晨厚实的浮云 — Event Cloud</h1>
+    </header>
+    
+    <article class="event-content">
+      <p>早上起来就望见厚实的积云如同小山一般在楼房后面，手机难以拍出肉眼能看到的质感。<br>从今天起，公司不能在外勤打卡了，得坚持早睡早起，尽量不迟到。虽然迟到影响也不大，但还是避免为好。</p>
+<p><img class="ec-img" src="../assets/thumbnails/2026-08-27-13-54-41.webp" data-preview="../assets/previews/2026-08-27-13-54-41.webp" alt="2026-08-27-13-54-41.jpeg" loading="lazy"> <img class="ec-img" src="../assets/thumbnails/2026-08-27-13-54-48.webp" data-preview="../assets/previews/2026-08-27-13-54-48.webp" alt="2026-08-27-13-54-48.jpeg" loading="lazy"></p>
+<img class="ec-img" src="../assets/thumbnails/2026-08-27-14-01-14.webp" data-preview="../assets/previews/2026-08-27-14-01-14.webp" alt="2026-08-27-14-01-14.jpeg" loading="lazy">
+    </article>
+    
+    
+    
+    
+    
+    
+  </div>
+  
+  <script src="../js/app.js"></script>
+  <script>
+    (function () {
+      // Lightbox for inline images (ec-img class)
+      var overlay = document.createElement('div');
+      overlay.id = 'ec-lightbox';
+      overlay.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;cursor:zoom-out;align-items:center;justify-content:center;';
+      var lightboxImg = document.createElement('img');
+      lightboxImg.style.cssText = 'max-width:92vw;max-height:92vh;border-radius:6px;box-shadow:0 4px 32px rgba(0,0,0,.6);';
+      overlay.appendChild(lightboxImg);
+      document.body.appendChild(overlay);
+
+      function openLightbox(src) {
+        lightboxImg.src = src;
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLightbox() {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      overlay.addEventListener('click', closeLightbox);
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeLightbox();
+      });
+
+      document.querySelectorAll('.ec-img').forEach(function(img) {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', function() {
+          var preview = img.getAttribute('data-preview') || img.src;
+          openLightbox(preview);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
