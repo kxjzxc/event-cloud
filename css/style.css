@@ -633,6 +633,62 @@ html, body {
   border-color: var(--text);
 }
 
+/* ── 首页页脚访问统计 (busuanzi) · 极简水印风 ───────── */
+.site-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  pointer-events: none;
+  text-align: center;
+  z-index: 40;
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+}
+.site-stats,
+.site-stats-sub {
+  pointer-events: auto;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+.site-stats-sub {
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+.stat-label {
+  color: var(--text-dim);
+  margin-right: 0.35ch;
+}
+.stat-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  min-width: 1ch;
+  display: inline-block;
+  font-weight: 500;
+}
+.stat-unit {
+  color: var(--text-dim);
+  margin-left: 0.3ch;
+}
+.stat-sep {
+  color: var(--border);
+  margin: 0 0.6rem;
+}
+.site-stats-sub a {
+  color: var(--text-dim);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--accent-soft);
+  transition: color 0.2s, border-color 0.2s;
+}
+.site-stats-sub a:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .event-page {
   max-width: 700px;
   margin: 0 auto;
