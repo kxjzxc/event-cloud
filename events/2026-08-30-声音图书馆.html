@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>声音图书馆 — Event Cloud</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <a href="../index.html" class="back-home">← 返回</a>
+  
+  <div class="event-page" data-event-id="2026-08-30-声音图书馆">
+    <header class="event-header">
+      <div class="event-date">2026-08-30</div>
+      <h1 class="event-title">声音图书馆 — Event Cloud</h1>
+    </header>
+    
+    <article class="event-content">
+      <p>种草声音图书馆许久，但因为距离太远一直没去。这周末终于成行，原本还担心不及预期，想着逛一个小时就去江边走走，但没想到 <a href="2026-08-30-eka天物街区闲逛.html" class="tm-link">EKA天物街区闲逛</a>本身就很好逛，而我在声音图书馆更是待了好几个小时，无论是坐在聆听区听CD，还是逛唱片艺术展都是很有趣的体验。<br>虽然我自己没有CD也没有黑胶，但自从当年在心斋桥的商场里试听了CD，就很喜欢这样的体验。</p>
+<p><img class="ec-img" src="../assets/thumbnails/2026-08-31-14-47-30.webp" data-preview="../assets/previews/2026-08-31-14-47-30.webp" alt="2026-08-31-14-47-30.jpeg" loading="lazy"> <img class="ec-img" src="../assets/thumbnails/2026-08-31-14-47-43.webp" data-preview="../assets/previews/2026-08-31-14-47-43.webp" alt="2026-08-31-14-47-43.jpeg" loading="lazy"> <img class="ec-img" src="../assets/thumbnails/2026-08-31-14-47-52.webp" data-preview="../assets/previews/2026-08-31-14-47-52.webp" alt="2026-08-31-14-47-52.jpeg" loading="lazy"> <img class="ec-img" src="../assets/thumbnails/2026-08-31-14-48-08.webp" data-preview="../assets/previews/2026-08-31-14-48-08.webp" alt="2026-08-31-14-48-08.jpeg" loading="lazy"> <img class="ec-img" src="../assets/thumbnails/2026-08-31-14-48-13.webp" data-preview="../assets/previews/2026-08-31-14-48-13.webp" alt="2026-08-31-14-48-13.jpeg" loading="lazy"></p>
+
+    </article>
+    
+    
+    
+    
+    
+    
+    <div class="event-links">
+      <div class="event-links">链接: <a href="2026-08-30-eka天物街区闲逛.html">EKA天物街区闲逛</a></div>
+    </div>
+    
+  </div>
+  
+  <script src="../js/app.js"></script>
+  <script>
+    (function () {
+      // Lightbox for inline images (ec-img class)
+      var overlay = document.createElement('div');
+      overlay.id = 'ec-lightbox';
+      overlay.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;cursor:zoom-out;align-items:center;justify-content:center;';
+      var lightboxImg = document.createElement('img');
+      lightboxImg.style.cssText = 'max-width:92vw;max-height:92vh;border-radius:6px;box-shadow:0 4px 32px rgba(0,0,0,.6);';
+      overlay.appendChild(lightboxImg);
+      document.body.appendChild(overlay);
+
+      function openLightbox(src) {
+        lightboxImg.src = src;
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLightbox() {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      overlay.addEventListener('click', closeLightbox);
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeLightbox();
+      });
+
+      document.querySelectorAll('.ec-img').forEach(function(img) {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', function() {
+          var preview = img.getAttribute('data-preview') || img.src;
+          openLightbox(preview);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
