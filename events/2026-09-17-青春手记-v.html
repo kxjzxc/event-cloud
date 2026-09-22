@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>《青春手记·V》 — Event Cloud</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <a href="../index.html" class="back-home">← 返回</a>
+  
+  <div class="event-page" data-event-id="2026-09-17-青春手记-v">
+    <header class="event-header">
+      <div class="event-date">2026-09-17</div>
+      <h1 class="event-title">《青春手记·V》 — Event Cloud</h1>
+    </header>
+    
+    <article class="event-content">
+      <p>翻开波伏娃的《青春手记》，这一提醒映入眼帘。<br>阅读他人的私密手记的确算不上光明正大，但我当时借阅此书确实也出于一种隐秘的窥视欲，希望了解百年前的这位存在主义哲学家年轻时的想法。<br>作为手记，此书的语言很是随意，也很意识流，没有前因后果，只有此时此刻的思绪展示，阅读起来并不轻松，但不少语句却能给人共鸣，毕竟“日光之下，并无新事”，无论过去多少年，大家都在作为“人”而迷茫挣扎，在痛苦中思考。</p>
+<p><img class="ec-img" src="../assets/thumbnails/2026-09-18-10-07-37.webp" data-preview="../assets/previews/2026-09-18-10-07-37.webp" alt="2026-09-18-10-07-37.jpeg" loading="lazy"> <img class="ec-img" src="../assets/thumbnails/2026-09-18-10-07-44.webp" data-preview="../assets/previews/2026-09-18-10-07-44.webp" alt="2026-09-18-10-07-44.jpeg" loading="lazy"></p>
+
+    </article>
+    
+    
+    
+    
+    
+    
+  </div>
+  
+  <script src="../js/app.js"></script>
+  <script>
+    (function () {
+      // Lightbox for inline images (ec-img class)
+      var overlay = document.createElement('div');
+      overlay.id = 'ec-lightbox';
+      overlay.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;cursor:zoom-out;align-items:center;justify-content:center;';
+      var lightboxImg = document.createElement('img');
+      lightboxImg.style.cssText = 'max-width:92vw;max-height:92vh;border-radius:6px;box-shadow:0 4px 32px rgba(0,0,0,.6);';
+      overlay.appendChild(lightboxImg);
+      document.body.appendChild(overlay);
+
+      function openLightbox(src) {
+        lightboxImg.src = src;
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLightbox() {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      overlay.addEventListener('click', closeLightbox);
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeLightbox();
+      });
+
+      document.querySelectorAll('.ec-img').forEach(function(img) {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', function() {
+          var preview = img.getAttribute('data-preview') || img.src;
+          openLightbox(preview);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

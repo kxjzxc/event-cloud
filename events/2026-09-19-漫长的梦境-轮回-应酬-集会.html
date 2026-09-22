@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>漫长的梦境·轮回·应酬·集会 — Event Cloud</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <a href="../index.html" class="back-home">← 返回</a>
+  
+  <div class="event-page" data-event-id="2026-09-19-漫长的梦境-轮回-应酬-集会">
+    <header class="event-header">
+      <div class="event-date">2026-09-19</div>
+      <h1 class="event-title">漫长的梦境·轮回·应酬·集会 — Event Cloud</h1>
+    </header>
+    
+    <article class="event-content">
+      <p>周六的早上，我从一场漫长的梦境中醒来，感到无比疲惫。<br>我梦见自己梦里的母亲会突然发疯，将手臂刺穿我的心脏，死去的我回到最初的那一年，此后小心翼翼地重新生活，直到过于漫长的防备让我放松警惕，某一天不详的预感还没有形成念头时，我便被失控的母亲再次刺穿心脏。<br>经过一些过渡，我被邀请到一场饭局，虽然是被邀请方，却没有人在意我，我绞尽脑汁想说些什么，十分心累。<br>最后一个还能记得的场景是一个巨大的阴暗的水泥场地里进行一场集会，只记得有一个人光着膀子一身腱子肉在人群中俯卧撑。<br>这场梦耗尽了我的精力，周六的白天我都无所事事地躺在床上刷手机，十分堕落。</p>
+
+    </article>
+    
+    
+    
+    
+    
+    
+  </div>
+  
+  <script src="../js/app.js"></script>
+  <script>
+    (function () {
+      // Lightbox for inline images (ec-img class)
+      var overlay = document.createElement('div');
+      overlay.id = 'ec-lightbox';
+      overlay.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;cursor:zoom-out;align-items:center;justify-content:center;';
+      var lightboxImg = document.createElement('img');
+      lightboxImg.style.cssText = 'max-width:92vw;max-height:92vh;border-radius:6px;box-shadow:0 4px 32px rgba(0,0,0,.6);';
+      overlay.appendChild(lightboxImg);
+      document.body.appendChild(overlay);
+
+      function openLightbox(src) {
+        lightboxImg.src = src;
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLightbox() {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      overlay.addEventListener('click', closeLightbox);
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeLightbox();
+      });
+
+      document.querySelectorAll('.ec-img').forEach(function(img) {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', function() {
+          var preview = img.getAttribute('data-preview') || img.src;
+          openLightbox(preview);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

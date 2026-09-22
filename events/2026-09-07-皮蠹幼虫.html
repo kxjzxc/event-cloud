@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>皮蠹幼虫 — Event Cloud</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <a href="../index.html" class="back-home">← 返回</a>
+  
+  <div class="event-page" data-event-id="2026-09-07-皮蠹幼虫">
+    <header class="event-header">
+      <div class="event-date">2026-09-07</div>
+      <h1 class="event-title">皮蠹幼虫 — Event Cloud</h1>
+    </header>
+    
+    <article class="event-content">
+      <p>和<a href="2026-07-23-装死的皮蠹.html" class="tm-link">装死的皮蠹</a>比，幼虫确实很大不同，感觉昆虫是最宝可梦的一种生物了</p>
+<p><img class="ec-img" src="../assets/thumbnails/2026-09-15-12-53-03.webp" data-preview="../assets/previews/2026-09-15-12-53-03.webp" alt="2026-09-15-12-53-03.jpeg" loading="lazy"> <img class="ec-img" src="../assets/thumbnails/2026-09-15-12-53-13.webp" data-preview="../assets/previews/2026-09-15-12-53-13.webp" alt="2026-09-15-12-53-13.jpeg" loading="lazy"></p>
+
+    </article>
+    
+    
+    
+    
+    
+    
+    <div class="event-links">
+      <div class="event-links">链接: <a href="2026-07-23-装死的皮蠹.html">装死的皮蠹</a></div>
+    </div>
+    
+  </div>
+  
+  <script src="../js/app.js"></script>
+  <script>
+    (function () {
+      // Lightbox for inline images (ec-img class)
+      var overlay = document.createElement('div');
+      overlay.id = 'ec-lightbox';
+      overlay.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;cursor:zoom-out;align-items:center;justify-content:center;';
+      var lightboxImg = document.createElement('img');
+      lightboxImg.style.cssText = 'max-width:92vw;max-height:92vh;border-radius:6px;box-shadow:0 4px 32px rgba(0,0,0,.6);';
+      overlay.appendChild(lightboxImg);
+      document.body.appendChild(overlay);
+
+      function openLightbox(src) {
+        lightboxImg.src = src;
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+      function closeLightbox() {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      overlay.addEventListener('click', closeLightbox);
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeLightbox();
+      });
+
+      document.querySelectorAll('.ec-img').forEach(function(img) {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', function() {
+          var preview = img.getAttribute('data-preview') || img.src;
+          openLightbox(preview);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
